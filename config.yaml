@@ -1,0 +1,26 @@
+# config.yaml
+
+charts:
+  include:
+    - fig1_total_emissions
+    - fig2_shaded
+    - fig3_ndc_emissions_by_sector
+    - fig3b_ndc_emissions_by_sector
+    - fig4_2035_stacked_bar_by_scenarios
+    - fig5_base_reference_emissions
+
+  # you can also add an 'exclude' list if you prefer:
+  # exclude:
+  #   - some_other_chart
+
+output:
+  formats:    # file formats to write
+    - png
+    - svg
+  resolutions:  # width & height (in pixels)
+    dev:
+      width: 800
+      height: 600
+    report:
+      width: 1600
+      height: 1200
