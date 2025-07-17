@@ -1,8 +1,12 @@
 # config.yaml
 
 charts:
-  # include:       # if you leave this out or set to [], we auto-run all
-  #  - fig1_total_emissions
+  include:       # if you leave this out or set to [], we auto-run all
+    - fig1_total_emissions
+    - fig2_shaded
+    - fig3_ndc_emissions_by_sector
+    - fig3b_ndc_emissions_by_sector
+    - fig5_base_reference_emissions
   exclude:
     - fig4_2035_stacked_bar_by_scenarios
 
