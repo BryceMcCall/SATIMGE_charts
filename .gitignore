@@ -4,4 +4,7 @@ charts/results/
 data/raw/*
 !data/raw/REPORT_00_sample.zip
 
+# ignore all files in data/processed/…
 data/processed/*
+# …except our placeholder, so the folder is kept
+!data/processed/.gitkeep
