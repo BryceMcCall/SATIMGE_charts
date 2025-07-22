@@ -13,17 +13,17 @@ if __name__ == "__main__" and __package__ is None:
 import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
-from charts.common.save  import save_figures
+from charts.common.save import save_figures
 
 def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: str) -> None:
     """
-    Fig 4: Stacked bar of 2035 energy emissions by scenario & sector group.
+    Fig 4: Stacked bar of emissions in 2035 by scenario and sector group (18 bars total).
     - df: processed DataFrame with CO2eq, IPCC_Category_L1, Sector, Scenario, Year
     - output_dir: folder to save images & data.csv
     """
     print("generating figure 4")
 
-    # Step 0: Helper to map sectors (same logic as fig3)
+    # Helper to map sectors
     def map_sector_group(sector):
         if sector in ["Industry", "Process emissions"]:
             return "Industry"
@@ -36,37 +36,36 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
         else:
             return "All others"
 
-    # Step 1: Filter for energy emissions
+    # Keep only energy emissions
     df_f4 = df[df["IPCC_Category_L1"] == "1 Energy"].copy()
     df_f4["SectorGroup"] = df_f4["Sector"].apply(map_sector_group)
 
-        # Step 2: Select 2035 emissions by scenario & sector
+    # Step 1: Sum 2035 emissions by Scenario, excluding baseline
     total_2035 = (
         df_f4[df_f4["Year"] == 2035]
         .groupby("Scenario")["CO2eq"]
         .sum()
         .sort_values()
     )
+    total_2035_no_base = total_2035.drop("NDC_BASE-RG", errors="ignore")
 
-    # Always include the smallest and largest total-emission scenarios
-    first_scen = total_2035.head(1).index.tolist()
-    last_scen  = total_2035.tail(1).index.tolist()
-
-    # Middle scenarios (exclude first & last)
-    middle = total_2035.iloc[1:-1]
-    # only sample as many as exist (max 18)
-    sample_size   = min(18, len(middle))
+    # Select smallest, largest, and a random sample of up to 15 middle scenarios (so + baseline = 18 bars)
+    first_scen    = total_2035_no_base.head(1).index.tolist()
+    last_scen     = total_2035_no_base.tail(1).index.tolist()
+    middle        = total_2035_no_base.iloc[1:-1]
+    sample_size   = min(15, len(middle))
     middle_sample = middle.sample(n=sample_size, random_state=42).index.tolist()
+    selected_scenarios = first_scen + middle_sample + last_scen + ["NDC_BASE-RG"]
 
-    selected = first_scen + middle_sample + last_scen
-
-    # Step 2b: Build the 2035‐only grouped DataFrame
+    # Step 2: 2035 emissions by SectorGroup and Scenario (exclude 2035 for baseline)
+    scen_for_2035 = [s for s in selected_scenarios if s != "NDC_BASE-RG"]
+    fig4_data = df_f4[
+        (df_f4["Year"] == 2035) &
+        (df_f4["Scenario"].isin(scen_for_2035))
+    ]
     fig4_grouped = (
-        df_f4[
-            (df_f4["Year"] == 2035) &
-            (df_f4["Scenario"].isin(selected))
-        ]
-        .groupby(["Scenario", "SectorGroup"])["CO2eq"]
+        fig4_data
+        .groupby(["Scenario", "SectorGroup"])['CO2eq']
         .sum()
         .reset_index()
     )
@@ -103,33 +102,24 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
     )
 
     # Step 6: Plot stacked bar
+    fig4 = go.Figure()
     sector_order = ["All others", "Refineries", "Transport", "Industry", "Power"]
-    fig = go.Figure()
     for sector in sector_order:
         if sector in fig4_pivot.columns:
-            fig.add_trace(go.Bar(
+            fig4.add_trace(go.Bar(
                 x=fig4_pivot.index,
                 y=fig4_pivot[sector],
                 name=sector
             ))
 
-    # Add 2024 label above the NDC_BASE-RG bar
-    fig.add_trace(go.Scatter(
-        x=["NDC_BASE-RG"],
-        y=[fig4_pivot.loc["NDC_BASE-RG"].sum()],
-        mode="text",
-        text=["2024"],
-        textposition="top center",
-        showlegend=False,
-        textfont=dict(size=12, color="black", family="Arial Black")
-    ))
-
-    # Step 7: Style & layout
-    fig = apply_common_layout(fig, "Fig 4: Energy Emissions by Scenario & Sector (2035)")
-    fig.update_layout(
-        barmode="stack",
+    fig4.update_layout(
+        barmode='stack',
+        title="Energy Emissions",
         xaxis_title="",
         yaxis_title="CO₂eq (kt)",
+        template="simple_white",
+        font=dict(family="Arial", size=14),
+        margin=dict(l=60, r=30, t=60, b=100),
         legend=dict(
             orientation="v",
             yanchor="top",
@@ -139,21 +129,28 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
         )
     )
 
-    # Step 8: Save images & data
+    # Annotate 2024 baseline above the NDC_BASE-RG bar
+    fig4.add_trace(go.Scatter(
+        x=["NDC_BASE-RG"],
+        y=[fig4_pivot.loc["NDC_BASE-RG"].sum()],
+        mode='text',
+        text=['2024'],
+        textposition='top center',
+        showlegend=False,
+        textfont=dict(size=12, color='black', family='Arial Black')
+    ))
+
+    # Step 7: Save figure and data
     print("saving figure 4")
-    save_figures(fig, output_dir, name="fig4_2035_stacked_bar_by_scenarios")
-    # export data
+    save_figures(fig4, output_dir, name="fig4_2035_stacked_bar_by_scenarios")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    (Path(output_dir) / "data.csv").write_text("")  # ensure folder
-    fig4_grouped.to_csv(Path(output_dir) / "data.csv", index=False)
+    fig4_grouped.to_csv(Path(output_dir) / "fig4_data.csv", index=False)
 
-
-# ────────────────────────────────────────────────────────
-# Run standalone for testing:
+# Run standalone for testing
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[2]
     df = pd.read_parquet(project_root / "data/processed/processed_dataset.parquet")
     out = project_root / "outputs/charts_and_data/fig4_2035_stacked_bar_by_scenarios"
     out.mkdir(parents=True, exist_ok=True)
     generate_fig4_2035_stacked_bar_by_scenarios(df, str(out))
-# ────────────────────────────────────────────────────────
+

@@ -1,15 +1,17 @@
 # generate_charts.py
 
+import sys
+from pathlib import Path
 import argparse
 import pkgutil
 import importlib
 import shutil
 import pandas as pd
-from pathlib import Path
 import yaml
 
 # 1) Paths
-PROJECT_ROOT = Path(__file__).parent
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT))
 CONFIG_PATH  = PROJECT_ROOT / "config.yaml"
 CHARTS_DIR   = PROJECT_ROOT / "charts" / "chart_generators"
 DATA_PATH    = PROJECT_ROOT / "data" / "processed" / "processed_dataset.parquet"
@@ -31,10 +33,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 # 3) Load config
-with open(args.config) as f:
-    cfg = yaml.safe_load(f)
-
-charts_to_run = set(args.charts) if args.charts else set(cfg["charts"]["include"])
+tools_cfg = yaml.safe_load(open(args.config))
+charts_to_run = set(args.charts) if args.charts else set(tools_cfg["charts"]["include"])
 
 # 4) Prepare folders
 for d in (OUT_BASE, LOW_DIR, HIGH_DIR):
@@ -69,7 +69,7 @@ for finder, module_name, is_pkg in pkgutil.iter_modules(cg_pkg.__path__):
 
     # c) copy images to gallery
     for f in chart_dir.iterdir():
-        if f.suffix.lower() in (".png", ".svg", ".jpg", ".jpeg"):
+        if f.suffix.lower() in (".png", ".svg", ".jpg", ".jpeg"):  
             target = LOW_DIR if "_dev" in f.stem else HIGH_DIR
             shutil.copy(f, target / f.name)
 
