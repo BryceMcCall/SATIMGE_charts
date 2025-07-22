@@ -1,5 +1,16 @@
 # charts/results/fig2_shaded.py
 
+import sys
+from pathlib import Path
+
+# —————————————————————————————————————
+# When run as a script, add project root to sys.path so
+# `import charts.common…` works, then fall through to imports.
+if __name__ == "__main__" and __package__ is None:
+    project_root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(project_root))
+# —————————————————————————————————————
+
 import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
@@ -86,5 +97,15 @@ def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
 
     # Save figure and data
     print("saving figure 2")
-    save_figures(fig, output_dir, name="fig2_shadedbands")
+    save_figures(fig, output_dir, name="fig2_shaded")
     group_stats.to_csv(Path(output_dir) / "fig2_data.csv", index=False)
+
+# —————————————————————————————————————
+# If you run this file directly:
+if __name__ == "__main__":
+    project_root = Path(__file__).resolve().parents[2]
+    df = pd.read_parquet(project_root / "data/processed/processed_dataset.parquet")
+    out = project_root / "outputs/charts_and_data/fig2_shaded"
+    out.mkdir(parents=True, exist_ok=True)
+    generate_fig2_shaded(df, str(out))
+# —————————————————————————————————————
