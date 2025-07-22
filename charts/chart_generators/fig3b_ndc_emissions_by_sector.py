@@ -13,7 +13,7 @@ if __name__ == "__main__" and __package__ is None:
 import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
-from charts.common.save  import save_figures
+from charts.common.save import save_figures
 
 def generate_fig3b_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> None:
     """
@@ -92,25 +92,23 @@ def generate_fig3b_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) ->
         marker_color="blue"
     ))
 
-    # Step 5: Style & layout
-    fig = apply_common_layout(
-        fig,
-        "Fig 3b: NDC_BASE-RG Emissions by Aggregate Sector Group (Δ 2035–2024)"
-    )
+    # Step 5: Apply common styling
+    fig = apply_common_layout(fig)
+
+    # Step 6: Chart-specific layout
     fig.update_layout(
+        title="Fig 3b: NDC_BASE-RG Emissions by Aggregate Sector Group (Δ 2035–2024)",
         barmode="group",
         xaxis_title="CO₂eq (kt)",
         yaxis_title="Sector Group (Δ 2035–2024)",
         yaxis=dict(categoryorder="array", categoryarray=ordered_labels)
     )
 
-    # Step 6: Save images & data
+    # Step 7: Save images & data
     print("saving figure 3b")
     save_figures(fig, output_dir, name="fig3b_ndc_emissions_by_sector")
 
-    # write underlying data
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    (Path(output_dir) / "data.csv").write_text("")  # ensure folder
     data.to_csv(Path(output_dir) / "data.csv", index=False)
 
 

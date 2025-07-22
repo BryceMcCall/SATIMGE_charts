@@ -59,13 +59,12 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
 
     # Step 2: 2035 emissions by SectorGroup and Scenario (exclude 2035 for baseline)
     scen_for_2035 = [s for s in selected_scenarios if s != "NDC_BASE-RG"]
-    fig4_data = df_f4[
-        (df_f4["Year"] == 2035) &
-        (df_f4["Scenario"].isin(scen_for_2035))
-    ]
     fig4_grouped = (
-        fig4_data
-        .groupby(["Scenario", "SectorGroup"])['CO2eq']
+        df_f4[
+            (df_f4["Year"] == 2035) &
+            (df_f4["Scenario"].isin(scen_for_2035))
+        ]
+        .groupby(["Scenario", "SectorGroup"])["CO2eq"]
         .sum()
         .reset_index()
     )
@@ -112,14 +111,25 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
                 name=sector
             ))
 
+    # Annotate 2024 baseline above the NDC_BASE-RG bar
+    fig4.add_trace(go.Scatter(
+        x=["NDC_BASE-RG"],
+        y=[fig4_pivot.loc["NDC_BASE-RG"].sum()],
+        mode="text",
+        text=["2024"],
+        textposition="top center",
+        showlegend=False,
+        textfont=dict(size=12, color="black", family="Arial Black")
+    ))
+
+    # Apply common styling
+    fig4 = apply_common_layout(fig4)
+
+    # Chart-specific layout
     fig4.update_layout(
-        barmode='stack',
-        title="Energy Emissions",
-        xaxis_title="",
-        yaxis_title="CO₂eq (kt)",
-        template="simple_white",
-        font=dict(family="Arial", size=14),
-        margin=dict(l=60, r=30, t=60, b=100),
+        title="Fig 4: Energy Emissions by Scenario & Sector (2035)",
+        xaxis_title="",  # or "Scenario"
+        barmode="stack",
         legend=dict(
             orientation="v",
             yanchor="top",
@@ -129,23 +139,14 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
         )
     )
 
-    # Annotate 2024 baseline above the NDC_BASE-RG bar
-    fig4.add_trace(go.Scatter(
-        x=["NDC_BASE-RG"],
-        y=[fig4_pivot.loc["NDC_BASE-RG"].sum()],
-        mode='text',
-        text=['2024'],
-        textposition='top center',
-        showlegend=False,
-        textfont=dict(size=12, color='black', family='Arial Black')
-    ))
-
     # Step 7: Save figure and data
     print("saving figure 4")
     save_figures(fig4, output_dir, name="fig4_2035_stacked_bar_by_scenarios")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     fig4_grouped.to_csv(Path(output_dir) / "fig4_data.csv", index=False)
 
+
+# ────────────────────────────────────────────────────────
 # Run standalone for testing
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[2]
@@ -153,4 +154,3 @@ if __name__ == "__main__":
     out = project_root / "outputs/charts_and_data/fig4_2035_stacked_bar_by_scenarios"
     out.mkdir(parents=True, exist_ok=True)
     generate_fig4_2035_stacked_bar_by_scenarios(df, str(out))
-

@@ -13,7 +13,7 @@ if __name__ == "__main__" and __package__ is None:
 import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
-from charts.common.save  import save_figures
+from charts.common.save import save_figures
 
 def generate_fig5_base_reference_emissions(df: pd.DataFrame, output_dir: str) -> None:
     """
@@ -49,17 +49,17 @@ def generate_fig5_base_reference_emissions(df: pd.DataFrame, output_dir: str) ->
             line=dict(width=2)
         ))
 
-    # Step 4: Style & layout
-    fig = apply_common_layout(
-        fig,
-        "Fig 5: Total Emissions for BASE Scenarios (Reference Economic Growth)"
-    )
+    # Step 4: Apply common styling
+    fig = apply_common_layout(fig)
+
+    # Step 5: Chart-specific layout
     fig.update_layout(
+        title="Fig 5: Total Emissions for BASE Scenarios (Reference Economic Growth)",
         xaxis_title="Year",
         yaxis_title="CO₂eq (kt)"
     )
 
-    # Step 5: Save images & data
+    # Step 6: Save images & data
     print("saving figure 5")
     save_figures(
         fig,
@@ -69,7 +69,6 @@ def generate_fig5_base_reference_emissions(df: pd.DataFrame, output_dir: str) ->
 
     # Export the data used to plot
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    (Path(output_dir) / "data.csv").write_text("")  # ensure folder exists
     data.to_csv(Path(output_dir) / "data.csv", index=False)
 
 

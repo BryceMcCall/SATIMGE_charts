@@ -13,7 +13,8 @@ if __name__ == "__main__" and __package__ is None:
 import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
-from charts.common.save  import save_figures
+from charts.common.save import save_figures
+
 
 def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> None:
     """
@@ -46,7 +47,7 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
 
     # Step 2: Aggregate emissions
     data = subset.groupby(["Year", "SectorGroup"])["CO2eq"]\
-                 .sum().reset_index()
+                .sum().reset_index()
 
     # Step 3: Calculate differences and labels
     pivot = data.pivot(index="SectorGroup", columns="Year", values="CO2eq")\
@@ -76,7 +77,6 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
 
     # Step 5: Build the figure
     fig = go.Figure()
-    # 2024: red circle
     part_2024 = data[data["Year"] == 2024]
     fig.add_trace(go.Scatter(
         x=part_2024["CO2eq"],
@@ -85,7 +85,6 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
         name="2024",
         marker=dict(size=10, color="red", symbol="circle")
     ))
-    # 2035: blue X
     part_2035 = data[data["Year"] == 2035]
     fig.add_trace(go.Scatter(
         x=part_2035["CO2eq"],
@@ -95,25 +94,28 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
         marker=dict(size=10, color="blue", symbol="x")
     ))
 
-    # Step 6: Style & layout
-    fig = apply_common_layout(
-        fig,
-        "Fig 3: NDC_BASE-RG Emissions by Aggregate Sector Group (Δ 2035–2024)"
+    # Step 6: Apply common styling
+    fig = apply_common_layout(fig)
+
+    # Prevent the 0 label (and all x-ticks) from overlapping the y-axis
+    fig.update_xaxes(
+    automargin=True,   # expand left/bottom margins as needed
+    nticks=6           # optional: cap to ~6 ticks so they don’t all try to render
     )
-    # override axis settings for our custom ordering
+
+    # Step 7: Chart-specific layout
     fig.update_layout(
+        title="Fig 3: NDC_BASE-RG Emissions by Aggregate Sector Group (Δ 2035–2024)",
         xaxis_title="CO₂eq (kt)",
         yaxis_title="Sector Group (Δ 2035–2024)",
         yaxis=dict(categoryorder="array", categoryarray=ordered_label_list)
     )
 
-    # Step 7: Save
+    # Step 8: Save figure and data
     print("saving figure 3")
     save_figures(fig, output_dir, name="fig3_ndc_emissions_by_sector")
-
-    # Export the data used
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    (Path(output_dir) / "data.csv").write_text("")  # ensure folder exists
+    (Path(output_dir) / "data.csv").write_text("")
     data.to_csv(Path(output_dir) / "data.csv", index=False)
 
 
@@ -125,4 +127,3 @@ if __name__ == "__main__":
     out = project_root / "outputs/charts_and_data/fig3_ndc_emissions_by_sector"
     out.mkdir(parents=True, exist_ok=True)
     generate_fig3_ndc_emissions_by_sector(df, str(out))
-# ────────────────────────────────────────────────────────
