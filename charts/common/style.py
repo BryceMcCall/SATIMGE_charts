@@ -18,7 +18,7 @@ def apply_common_layout(fig: go.Figure) -> go.Figure:
         margin=dict(l=60, r=30, t=60, b=60),
         xaxis=dict(
             tickmode='linear',
-            tickangle=45,
+            #tickangle=45,
             showgrid=True,
             gridcolor='rgba(0,0,0,0.1)'
         ),

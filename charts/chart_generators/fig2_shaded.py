@@ -10,25 +10,30 @@ def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
     """
     Generates Figure 2: Total CO₂ Emissions by Scenario Group with shaded uncertainty bands.
     """
+    print("generating figure 2")
+
     # Prepare data: sum to scenario-year level
     scenario_year_emissions = (
         df.groupby(['Scenario', 'ScenarioFamily', 'Year'])['CO2eq']
-        .sum()
-        .reset_index(name='CO2eq_Total')
+          .sum()
+          .reset_index(name='CO2eq_Total')
     )
-    # Exclude Low Carbon scenario family if needed
-    scenario_year_emissions = scenario_year_emissions[~scenario_year_emissions['ScenarioFamily'].isin(['Low Carbon'])]
+    # Exclude Low Carbon scenario family
+    scenario_year_emissions = scenario_year_emissions[
+        ~scenario_year_emissions['ScenarioFamily'].isin(['Low Carbon'])
+    ]
     # Group into broader ScenarioGroup
-    scenario_year_emissions['ScenarioGroup'] = scenario_year_emissions['ScenarioFamily'].apply(
-        lambda x: 'CPP' if x.startswith('CPP') else x
+    scenario_year_emissions['ScenarioGroup'] = (
+        scenario_year_emissions['ScenarioFamily']
+        .apply(lambda x: 'CPP' if x.startswith('CPP') else x)
     )
     # Compute stats across scenarios
     group_stats = (
         scenario_year_emissions
-        .groupby(['ScenarioGroup', 'Year'])['CO2eq_Total']
-        .agg(['min', 'max', 'mean'])
-        .reset_index()
-        .rename(columns={'min': 'Emissions_min', 'max': 'Emissions_max', 'mean': 'Emissions_mean'})
+          .groupby(['ScenarioGroup', 'Year'])['CO2eq_Total']
+          .agg(['min', 'max', 'mean'])
+          .reset_index()
+          .rename(columns={'min': 'Emissions_min', 'max': 'Emissions_max', 'mean': 'Emissions_mean'})
     )
 
     # Define colors
@@ -69,21 +74,17 @@ def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
             name=f'{group} Mean'
         ))
 
-    # Apply common layout
-    fig = apply_common_layout(fig, "Total CO₂ Emissions by Scenario Group (Shaded Bands)")
+    # Apply common styling (grid, font, legend, ticks)
+    fig = apply_common_layout(fig)
+
+    # Chart-specific layout: title and axis labels
     fig.update_layout(
+        title="Fig 2: Total CO₂ Emissions by Scenario Group (Shaded Bands)",
         xaxis_title="Year",
-        yaxis_title="CO₂ Emissions (kt)",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=-0.25,
-            xanchor="center",
-            x=0.5
-        ),
-        margin=dict(l=60, r=30, t=60, b=60)
+        yaxis_title="CO₂ Emissions (kt)"
     )
 
     # Save figure and data
-    save_figures(fig, output_dir, "fig2_shadedbands")
-    group_stats.to_csv(f"{output_dir}/fig2_data.csv", index=False)
+    print("saving figure 2")
+    save_figures(fig, output_dir, name="fig2_shadedbands")
+    group_stats.to_csv(Path(output_dir) / "fig2_data.csv", index=False)

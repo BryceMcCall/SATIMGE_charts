@@ -14,7 +14,7 @@ if __name__ == "__main__" and __package__ is None:
 import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
-from charts.common.save  import save_figures
+from charts.common.save import save_figures
 
 
 def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
@@ -46,12 +46,21 @@ def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
             showlegend=False
         ))
 
-    # 3) Style & save
-    fig = apply_common_layout(fig, "Fig 1: Total Emissions by Scenario")
+    # 3) Apply common styling
+    fig = apply_common_layout(fig)
+
+    # 4) Chart-specific layout
+    fig.update_layout(
+        title="Fig 1: Total Emissions by Scenario",
+        xaxis_title="Year",
+        yaxis_title="CO₂eq (kt)"
+    )
+
+    # 5) Save figure
     print("saving figure 1")
     save_figures(fig, output_dir, name="fig1_total_emissions")
 
-    # 4) Write out the data
+    # 6) Write out the data
     (Path(output_dir) / "data.csv").write_text("")  # ensure folder exists
     data.to_csv(Path(output_dir) / "data.csv", index=False)
 
