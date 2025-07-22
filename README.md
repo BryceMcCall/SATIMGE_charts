@@ -15,7 +15,7 @@ project\_root/
 ├── generate\_charts.py         # auto-discovers & runs all chart modules
 ├── data/
 │   ├── raw/
-│   │   └── REPORT\_00.csv
+│   │   └── REPORT\_00\_sample.zip
 │   └── processed/
 │       ├── processed\_dataset.csv
 │       └── processed\_dataset.parquet
@@ -40,7 +40,9 @@ project\_root/
 
 ## ⚙️ Prerequisites
 
-- Python 3.8+  
+- Python 3.8+ 
+- Git (to clone repos)  
+- OneDrive access for the SATIMGE_Veda sets & maps file  
 - Install required packages:  
 ```bash
   pip install -r requirements.txt
@@ -48,9 +50,33 @@ project\_root/
 
 ## 🛠 Installation & Setup
 
-1. Clone this repository and `cd` into it.
-2. Create or update your **`config.yaml`** to select which charts to run and output specs.
-3. In `generate_dataset.py`, replace this directory with your local directory of `setsandmaps.xlsm`:
+1. **Clone the SATIMGE_charts repo**  
+   ```bash
+   git clone https://github.com/BryceMcCall/SATIMGE_charts.git
+2. **Clone the main SATIMGE\_Veda repo** (contains `setsandmaps.xlsm`)
+
+   ```bash
+   git clone https://github.com/brunomerven/SATIMGE_Veda.git
+   ```
+3. **Change into the charts project folder**
+
+   ```bash
+   cd SATIMGE_charts
+   ```
+4. **After cloning, fetch the dataset zip**
+
+   ```bash
+   # inside the charts repo root
+   ls data/raw/dataset.zip  # should already be there after git clone
+   unzip data/raw/dataset.zip -d data/raw/
+   ```
+5. **Install Python dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+6. Create or update your **`config.yaml`** to select which charts to run and output specs.
+7. In `generate_dataset.py`, replace this directory with your local directory of `setsandmaps.xlsm`:
 
    ```
    C:\Users\<you>\OneDrive\Documents\GitHub\SATIMGE_Veda\setsandmaps\setsandmaps.xlsm
@@ -89,7 +115,7 @@ This:
 * Saves images & `data.csv` under `outputs/charts_and_data/<module_name>/`
 * Copies images into `outputs/gallery/low_res` and `high_res`
 
-### 3. Run an individual chart (for developers)
+### 3. Run an individual chart
 
 ```bash
 python charts/chart_generators/fig1_total_emissions.py
@@ -144,46 +170,49 @@ output:
 
 If you’re not familiar with Python:
 
-1. **Clone this repository**
-   Open your terminal or PowerShell and run:
+1. **Clone both repos**
 
    ```bash
    git clone https://github.com/BryceMcCall/SATIMGE_charts.git
+   git clone https://github.com/brunomerven/SATIMGE_Veda.git
    ```
-
-
-
 2. **Navigate into the project folder**
 
    ```bash
    cd SATIMGE_charts
    ```
+3. **After cloning, fetch the dataset zip**
 
-3. **Install Python 3.8+** (if you haven’t already) from [python.org](https://www.python.org/downloads/).
+   ```bash
+   # inside the repo root
+   ls data/raw/dataset.zip  # should already be there after git clone
+   unzip data/raw/dataset.zip -d data/raw/
+   ```
+4. **Install Python 3.8+** (if you haven’t already) from [python.org](https://www.python.org/downloads/).
 
-4. **Install dependencies**
+5. **Install dependencies**
    While still in the project folder, run:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-5. **Edit** `config.yaml` (optional)
+6. **Edit** `config.yaml` (optional)
    Use any text editor to open `config.yaml` and select which charts to run or adjust output sizes.
 
-6. **Generate the processed dataset**
+7. **Generate the processed dataset**
 
    ```bash
    python generate_dataset.py
    ```
 
-7. **Generate all charts**
+8. **Generate all charts**
 
    ```bash
    python generate_charts.py
    ```
 
-8. **Find your outputs**
+9. **Find your outputs**
 
    * **Per-chart folders:** `outputs/charts_and_data/<chart_name>/` (images + data.csv)
    * **Gallery:** `outputs/gallery/low_res/` and `outputs/gallery/high_res/` (image-only)

@@ -1,6 +1,7 @@
 
 charts/results/
 
-data/raw/
+data/raw/*
+!data/raw/REPORT_00_sample.zip
 
-data/processed/
+data/processed/*
