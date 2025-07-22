@@ -1,14 +1,19 @@
 # config.yaml
 
+project:
+  name: "Energy Systems Research Group: NDC2 Mitigation Technical Analysis"
+  logo_path: "charts/common/ESRG sm colour.jpg"    # relative to project root
+
 charts:
   include:       # if you leave this out or set to [], we auto-run all
     - fig1_total_emissions
     - fig2_shaded
     - fig3_ndc_emissions_by_sector
     - fig3b_ndc_emissions_by_sector
+    - fig4_2035_stacked_bar_by_scenarios
     - fig5_base_reference_emissions
   exclude:
-    - fig4_2035_stacked_bar_by_scenarios
+    
 
 output:
   formats:    # file formats to write
