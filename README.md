@@ -1,94 +1,221 @@
-# SATIMGE_charts
+# SATIMGE Charts Pipeline
 
-Inital proposed structure (from chatgpt)
+A code-driven workflow to process SATIMGE model outputs and generate publication-quality charts in Python, replacing ad-hoc Tableau processes.  
 
-FOLDER STRUCTURE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## 📁 Project Structure
 
-energy_model_reporting/
-│
-├── data/
-│   ├── raw/                      # Original CSV exports from the model
-│   └── processed/               # Cleaned and transformed data (with CO2eq, labels, mappings)
-│
-├── charts/
-│   ├── common/                  # Shared styling functions, themes
-│   ├── methodology/            # Charts used in the methodology report
-│   └── results/                # Charts used in the results report
-│
-├── tables/
-│   ├── methodology/            # Tables for the methodology report
-│   └── results/                # Tables for the results report
-│
-├── utils/
-│   └── mappings.py             # Sector groupings, carbon budget logic, etc.
-│
-├── generate_dataset.py         # Master script to generate the processed dataset
-├── generate_charts.py          # Runs both sets of figures
+```
+
+project\_root/
+├── .gitignore
+├── README.md
 ├── requirements.txt
-└── README.md
+├── config.yaml
+├── generate\_dataset.py        # preprocess raw REPORT\_00.csv → CSV + Parquet
+├── generate\_charts.py         # auto-discovers & runs all chart modules
+├── data/
+│   ├── raw/
+│   │   └── REPORT\_00\_sample.zip
+│   └── processed/
+│       ├── processed\_dataset.csv
+│       └── processed\_dataset.parquet
+├── utils/
+│   └── mappings.py            # Sets & Maps Excel → mappings functions
+├── charts/
+│   ├── common/
+│   │   ├── **init**.py
+│   │   ├── style.py           # shared Plotly styling
+│   │   └── save.py            # image‐saving helper reading config.yaml
+│   └── chart\_generators/      # one module per figure
+│       ├── **init**.py
+│       ├── fig1\_total\_emissions.py
+│       └── fig2\_shaded.py
+└── outputs/
+├── charts\_and\_data/       # per-figure folders containing images & data.csv
+└── gallery/
+├── low\_res/           # all `_dev` images
+└── high\_res/          # all report-quality images
+
+```
+
+## ⚙️ Prerequisites
+
+- Python 3.8+ 
+- Git (to clone repos)  
+- OneDrive access for the SATIMGE_Veda sets & maps file  
+- Install required packages:  
+```bash
+  pip install -r requirements.txt
+```
+
+## 🛠 Installation & Setup
+
+1. **Clone the SATIMGE_charts repo**  
+   ```bash
+   git clone https://github.com/BryceMcCall/SATIMGE_charts.git
+2. **Clone the main SATIMGE\_Veda repo** (contains `setsandmaps.xlsm`)
+
+   ```bash
+   git clone https://github.com/brunomerven/SATIMGE_Veda.git
+   ```
+3. **Change into the charts project folder**
+
+   ```bash
+   cd SATIMGE_charts
+   ```
+4. **After cloning, fetch the dataset zip**
+
+   ```bash
+   # inside the charts repo root
+   ls data/raw/dataset.zip  # should already be there after git clone
+   unzip data/raw/dataset.zip -d data/raw/
+   ```
+5. **Install Python dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+6. Create or update your **`config.yaml`** to select which charts to run and output specs.
+7. In `generate_dataset.py`, replace this directory with your local directory of `setsandmaps.xlsm`:
+
+   ```
+   C:\Users\<you>\OneDrive\Documents\GitHub\SATIMGE_Veda\setsandmaps\setsandmaps.xlsm
+   ```
+    ps. it's likely:
+      ```
+   C:\Models\SATIMGE_Veda\SetsAndMaps
+   ```
 
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Detailed info on files:
 
 
-1. generate_dataset.py
-Transforms raw model results to a common format used for all figures:
+## 🚀 Usage
 
-    Compute CO2eq from gases
+### 1. Generate the processed dataset
 
-    Add ScenarioFamily, ScenarioGroup, EconomicGrowth, CarbonBudget, etc.
+```bash
+python generate_dataset.py
+```
 
-    Save as processed_dataset.csv
+This reads `data/raw/REPORT_00.csv`, applies mappings, writes:
+
+* `data/processed/processed_dataset.csv`
+* `data/processed/processed_dataset.parquet`
+
+### 2. Generate all charts
+
+```bash
+python generate_charts.py
+```
+
+This:
+
+* Auto-discovers every `charts/chart_generators/fig*_*.py` module
+* Runs its `generate_<module_name>` function
+* Saves images & `data.csv` under `outputs/charts_and_data/<module_name>/`
+* Copies images into `outputs/gallery/low_res` and `high_res`
+
+### 3. Run an individual chart
+
+```bash
+python charts/chart_generators/fig1_total_emissions.py
+```
+
+Each module boots itself onto the correct import path and outputs to:
+
+```
+outputs/charts_and_data/fig1_total_emissions/
+```
+
+## 🔧 Configuration (`config.yaml`)
+
+Non-coders can open `config.yaml` to:
+
+* **Include** or **exclude** charts by name
+* Set output **formats** (`png`, `svg`, etc.)
+* Define **resolutions** (`dev`, `report`)
+
+Example:
+
+```yaml
+charts:
+  include:
+    - total_emissions_by_scenario
+    - emissions_uncertainty_bands
+
+output:
+  formats:
+    - png
+    - svg
+  resolutions:
+    dev:
+      width: 800
+      height: 600
+    report:
+      width: 1600
+      height: 1200
+```
+
+## 📂 Outputs
+
+* **Per-chart** (`outputs/charts_and_data/<chart_name>/`):
+
+  * `<chart_name>_dev.png` & `<chart_name>_report.png`
+  * `data.csv` (the exact table used to plot)
+* **Gallery** (`outputs/gallery/low_res`, `outputs/gallery/high_res`): image-only folders for quick browsing or inclusion in documents.
+
+---
+
+## 🙋 For Non-Coders
+
+If you’re not familiar with Python:
+
+1. **Clone both repos**
+
+   ```bash
+   git clone https://github.com/BryceMcCall/SATIMGE_charts.git
+   git clone https://github.com/brunomerven/SATIMGE_Veda.git
+   ```
+2. **Navigate into the project folder**
+
+   ```bash
+   cd SATIMGE_charts
+   ```
+3. **After cloning, fetch the dataset zip**
+
+   ```bash
+   # inside the repo root
+   ls data/raw/dataset.zip  # should already be there after git clone
+   unzip data/raw/dataset.zip -d data/raw/
+   ```
+4. **Install Python 3.8+** (if you haven’t already) from [python.org](https://www.python.org/downloads/).
+
+5. **Install dependencies**
+   While still in the project folder, run:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+6. **Edit** `config.yaml` (optional)
+   Use any text editor to open `config.yaml` and select which charts to run or adjust output sizes.
+
+7. **Generate the processed dataset**
+
+   ```bash
+   python generate_dataset.py
+   ```
+
+8. **Generate all charts**
+
+   ```bash
+   python generate_charts.py
+   ```
+
+9. **Find your outputs**
+
+   * **Per-chart folders:** `outputs/charts_and_data/<chart_name>/` (images + data.csv)
+   * **Gallery:** `outputs/gallery/low_res/` and `outputs/gallery/high_res/` (image-only)
 
 
-2. charts/common/style.py
-Shared styling and layout code:
-    apply_common_layout(fig, title)
-
-    Color palettes
-
-    Fonts and margins
-
- Use this across both reports for consistency.
-
-
-3. charts/methodology/
-Charts specific to explaining the model, e.g.:
-
-Figure	Chart Description
-M1	Total CO2eq vs Time for Base Scenarios (Reference Growth)
-M2	Comparison of emission scope: combustion vs process
-M3	Carbon budget levels by scenario family
-M4	Chart showing sector groupings and their mapping
-
-Save:
-
-JPEGs to /charts/methodology/
-
-CSVs to /tables/methodology/
-
-
-4. charts/results/
-Charts specific to model outcomes, e.g.:
-
-Figure	Chart Description
-R1	Total emissions by scenario
-R2	ScenarioGroup shaded bands
-R3	Sectoral emissions comparison (2024 vs 2035)
-R4	2035 emissions by scenario and sector (stacked bar)
-R5	BASE scenarios (Reference growth) over time
-R6	Carbon budget sensitivity chart
-R7	MAC curves if applicable
-R8	Electricity sector detail for key scenarios
-
-
-5. generate_charts.py
-Script that:
-
-Loads processed_dataset.csv
-
-Calls functions like generate_methodology_charts(df) and generate_results_charts(df)
-
-Optionally regenerates all figures with flags:
+No Python coding required beyond these commands! Feel free to reach out (to ChatGPT, preferably o4-mini-high) if you hit any snags!
