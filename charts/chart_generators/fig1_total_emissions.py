@@ -51,7 +51,7 @@ def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
 
     # 4) Chart-specific layout
     fig.update_layout(
-        title="Fig 1: Total Emissions by Scenario",
+        title="",
         xaxis_title="Year",
         yaxis_title="CO₂eq (kt)"
     )
