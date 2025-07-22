@@ -1,8 +1,10 @@
 
 charts/results/
 
+outputs/
+
 data/raw/*
-!data/raw/REPORT_00_sample.zip
+
 
 # ignore all files in data/processed/…
 data/processed/*
