@@ -93,15 +93,26 @@ def generate_fig3b_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) ->
     ))
 
     # Step 5: Apply common styling
-    fig = apply_common_layout(fig)
+    fig = apply_common_layout(fig, scale=1.0)  # or 1.0 for dev, 2.0 for report quality
+
 
     # Step 6: Chart-specific layout
     fig.update_layout(
         title="Fig 3b: NDC_BASE-RG Emissions by Aggregate Sector Group (Δ 2035–2024)",
         barmode="group",
-        xaxis_title="CO₂eq (kt)",
+        xaxis_title="CO₂eq (Mt)",
         yaxis_title="Sector Group (Δ 2035–2024)",
-        yaxis=dict(categoryorder="array", categoryarray=ordered_labels)
+        yaxis=dict(
+            categoryorder="array",
+            categoryarray=ordered_labels
+        ),
+        xaxis=dict(
+            tickmode="array",
+            tickvals=[0, 50000, 100000, 150000, 200000],
+            ticktext=["0", "50", "100", "150", "200"],
+            range=[0, 200000],
+            tickfont=dict(size=12),
+        )
     )
 
     # Step 7: Save images & data
