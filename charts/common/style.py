@@ -54,21 +54,28 @@ def apply_common_layout(fig: go.Figure, scale: float = 1.0) -> go.Figure:
         ]
     )
 
+    # X-axis
     fig.update_xaxes(
         showgrid=True,
         gridwidth=1,
         gridcolor="lightgrey",
         tickangle=0,
         title_font=dict(family="Arial", size=title_font),
-        tickfont=dict(size=tick_font)
+        tickfont=dict(size=tick_font),
+        tickmode="linear",  # ensures consistent spacing
+        dtick=5,            # adjust if needed (e.g. 5-year steps)
+        # leave range control to generator unless issues arise
     )
 
+    # Y-axis
     fig.update_yaxes(
         showgrid=True,
         gridwidth=1,
         gridcolor="lightgrey",
         title_font=dict(family="Arial", size=title_font),
-        tickfont=dict(size=base_font)
+        tickfont=dict(size=base_font),
+        rangemode="tozero",  # avoids overshooting upper limit
     )
+
 
     return fig

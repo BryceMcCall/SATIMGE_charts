@@ -90,7 +90,7 @@ def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
 
     # Chart-specific layout: title and axis labels
     fig.update_layout(
-        title="Fig 2: Total CO₂ Emissions by Scenario Group (Shaded Bands)",
+        title="Figure 2: Range of Total CO₂ Emissions by Scenario Group (Shaded Bands)",
         xaxis_title="Year",
         yaxis_title="CO₂ Emissions (kt)"
     )
