@@ -1,27 +1,28 @@
+# charts/chart_generators/fig3_ndc_emissions_by_sector.py
+
 import sys
 from pathlib import Path
 
-# Bootstrap
+# ────────────────────────────────────────────────────────
 if __name__ == "__main__" and __package__ is None:
     project_root = Path(__file__).resolve().parents[2]
     sys.path.insert(0, str(project_root))
+# ────────────────────────────────────────────────────────
 
-# ─── Imports ───────────────────────────────────────────
 import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
-import yaml
 
-# ─── Load config ───────────────────────────────────────
+import yaml
 project_root = Path(__file__).resolve().parents[2]
-config_path = project_root / "config.yml"
+config_path = project_root / "config.yaml"
 if config_path.exists():
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-    dev_mode = config.get("dev_mode", False)
+    with open(config_path) as f:
+        _CFG = yaml.safe_load(f)
+    dev_mode = _CFG.get("dev_mode", False)
 else:
-    print("⚠️ config.yml not found — defaulting dev_mode = False")
+    print("⚠️ config.yaml not found — defaulting dev_mode = False")
     dev_mode = False
 
 
@@ -73,6 +74,7 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
         name="2024",
         marker=dict(size=10, color="red", symbol="circle")
     ))
+
     part_2035 = data[data["Year"] == 2035]
     fig.add_trace(go.Scatter(
         x=part_2035["CO2eq"],
@@ -82,7 +84,6 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
         marker=dict(size=10, color="blue", symbol="x")
     ))
 
-    # Greyed-out dots for other scenarios
     other_scenarios = df[
         (df["CO2eq"] != 0.0) &
         (df["Scenario"] != "NDC_BASE-RG") &
@@ -103,7 +104,6 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
             opacity=0.4
         ))
 
-    # Arrows
     for _, row in part_2024.iterrows():
         label = row["SectorLabel"]
         x0 = row["CO2eq"]
@@ -143,7 +143,6 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
         data.to_csv(Path(output_dir) / "data.csv", index=False)
 
 
-# ─── Entry Point ───────────────────────────────────────
 if __name__ == "__main__":
     df = pd.read_parquet(project_root / "data/processed/processed_dataset.parquet")
     out = project_root / "outputs/charts_and_data/fig3_ndc_emissions_by_sector"

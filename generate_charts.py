@@ -36,6 +36,7 @@ args = parser.parse_args()
 tools_cfg = yaml.safe_load(open(args.config))
 charts_to_run = set(args.charts) if args.charts else set(tools_cfg["charts"]["include"])
 
+DEV_MODE = tools_cfg.get("dev_mode", False)
 
 
 # 4) Prepare folders
@@ -69,9 +70,13 @@ for finder, module_name, is_pkg in pkgutil.iter_modules(cg_pkg.__path__):
     # b) call module: it should save images & write data.csv into chart_dir
     fn(df, str(chart_dir))
 
-    # c) copy images to gallery
-    for f in chart_dir.iterdir():
-        if f.suffix.lower() in (".png", ".svg", ".jpg", ".jpeg"):  
+# c) dev mode: only save PNGs, skip CSV/SVG
+for f in chart_dir.iterdir():
+    if DEV_MODE:
+        if "_dev" in f.stem and f.suffix.lower() == ".png":
+            shutil.copy(f, LOW_DIR / f.name)
+    else:
+        if f.suffix.lower() in (".png", ".svg", ".jpg", ".jpeg"):
             target = LOW_DIR if "_dev" in f.stem else HIGH_DIR
             shutil.copy(f, target / f.name)
 

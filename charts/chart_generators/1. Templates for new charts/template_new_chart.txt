@@ -4,8 +4,7 @@ import sys
 from pathlib import Path
 
 # ────────────────────────────────────────────────────────
-# If run as script, add project root to sys.path so
-#  `import charts.common…` works
+# If run as script, add project root to sys.path
 if __name__ == "__main__" and __package__ is None:
     project_root = Path(__file__).resolve().parents[2]
     sys.path.insert(0, str(project_root))
@@ -15,47 +14,57 @@ import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
+import yaml
 
+# ────────────────────────────────────────────────────────
+# Load config and dev_mode flag
+project_root = Path(__file__).resolve().parents[2]
+config_path = project_root / "config.yaml"
+if config_path.exists():
+    with open(config_path) as f:
+        _CFG = yaml.safe_load(f)
+    dev_mode = _CFG.get("dev_mode", False)
+else:
+    dev_mode = False
+
+# ────────────────────────────────────────────────────────
 def generate_fig<NUM>_<module_name>(df: pd.DataFrame, output_dir: str) -> None:
     """
     Generates Figure <NUM>: <Short description>
-    - df: processed DataFrame (from processed_dataset.parquet)
-    - output_dir: path to save images & data.csv
     """
     print("generating figure <NUM>")
+    print(f"🛠️  dev_mode = {dev_mode}")
 
     # 1) Prepare data
-    #    e.g. data = df.groupby([...])['...'].sum().reset_index()
+    #    data = df.groupby([...])['...'].sum().reset_index()
 
     # 2) Build Plotly figure
     fig = go.Figure()
-    #    fig.add_trace(…)
+    # fig.add_trace(…)
 
-    # 3) Apply common styling
+    # 3) Apply styling
     fig = apply_common_layout(fig)
 
     # 4) Chart-specific layout
     fig.update_layout(
-        title="Fig <NUM>: <Title>",
+        title="Fig <NUM>: <Descriptive Title>",
         xaxis_title="<X-axis label>",
         yaxis_title="<Y-axis label>"
     )
 
-    # 5) Save images (dev & report)
+    # 5) Save figure
     print("saving figure <NUM>")
     save_figures(fig, output_dir, name="fig<NUM>_<module_name>")
 
-    # 6) Export underlying data
-    data.to_csv(Path(output_dir) / "data.csv", index=False)
+    # 6) Export data unless dev_mode
+    if not dev_mode:
+        data.to_csv(Path(output_dir) / "data.csv", index=False)
 
 
 # ────────────────────────────────────────────────────────
-# Allows direct execution for testing:
 if __name__ == "__main__":
-    project_root = Path(__file__).resolve().parents[2]
     df = pd.read_parquet(project_root / "data/processed/processed_dataset.parquet")
     out = project_root / "outputs/charts_and_data/fig<NUM>_<module_name>"
     out.mkdir(parents=True, exist_ok=True)
     generate_fig<NUM>_<module_name>(df, str(out))
 # ────────────────────────────────────────────────────────
-
