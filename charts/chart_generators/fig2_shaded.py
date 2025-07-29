@@ -56,7 +56,7 @@ def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
         'Other': 'rgba(128, 128, 128, 0.2)'
     }
     line_colors = {
-        'CPP': 'Yellow',
+        'CPP': 'Orange',
         'BASE': 'Blue',
         'High Carbon': 'red',
         'Low Carbon': 'green',

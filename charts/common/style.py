@@ -55,26 +55,48 @@ def apply_common_layout(fig: go.Figure, scale: float = 1.0) -> go.Figure:
     )
 
     # X-axis
+   # fig.update_xaxes(
+   #     showgrid=True,
+   #     gridwidth=1,
+   #     gridcolor="lightgrey",
+   #     tickangle=0,
+   #     title_font=dict(family="Arial", size=title_font),
+   #     tickfont=dict(size=tick_font),
+   #     tickmode="linear",  # ensures consistent spacing
+   #     dtick=5,            # adjust if needed (e.g. 5-year steps)
+   #     # leave range control to generator unless issues arise
+   # )
+
+    # Y-axis
+   # fig.update_yaxes(
+    #    showgrid=True,
+    #    gridwidth=1,
+    #    gridcolor="lightgrey",
+    #    title_font=dict(family="Arial", size=title_font),
+    #    tickfont=dict(size=base_font),
+   #     rangemode="tozero",  # avoids overshooting upper limit
+    #)
     fig.update_xaxes(
         showgrid=True,
         gridwidth=1,
         gridcolor="lightgrey",
-        tickangle=0,
-        title_font=dict(family="Arial", size=title_font),
-        tickfont=dict(size=tick_font),
-        tickmode="linear",  # ensures consistent spacing
-        dtick=5,            # adjust if needed (e.g. 5-year steps)
-        # leave range control to generator unless issues arise
+        tickmode="linear",
+        dtick=5,
+        mirror=True,  # <-- this adds top/right axis borders
+        ticks="outside",
+        showline=True,  # show bottom/top axis line
+        linecolor="lightgrey"
     )
 
-    # Y-axis
     fig.update_yaxes(
         showgrid=True,
         gridwidth=1,
         gridcolor="lightgrey",
-        title_font=dict(family="Arial", size=title_font),
-        tickfont=dict(size=base_font),
-        rangemode="tozero",  # avoids overshooting upper limit
+        rangemode="tozero",
+        mirror=True,  # <-- this adds right-side axis line
+        ticks="outside",
+        showline=True,
+        linecolor="lightgrey"
     )
 
 
