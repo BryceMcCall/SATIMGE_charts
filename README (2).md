@@ -30,10 +30,11 @@ project\_root/
 │       ├── **init**.py
 │       ├── fig1\_total\_emissions.py
 │       └── fig2\_shaded.py
-├── outputs/
-│   ├── charts_and_data/    # per-figure folders containing images & optional data.csv
-│   └── gallery/            # only report-quality images (no low_res/)
-
+└── outputs/
+├── charts\_and\_data/       # per-figure folders containing images & data.csv
+└── gallery/
+├── low\_res/           # all `_dev` images
+└── high\_res/          # all report-quality images
 
 ```
 
@@ -111,8 +112,8 @@ This:
 
 * Auto-discovers every `charts/chart_generators/fig*_*.py` module
 * Runs its `generate_<module_name>` function
-* Saves images & `data.csv` under `outputs/charts_and_data/<module_name>/`
-* Copies images into `outputs/gallery/low_res` and `high_res`
+* Saves high-res `*_report.png` and optionally `data.csv` to `outputs/charts_and_data/<module_name>/`
+* Copies images to `outputs/gallery/` for quick access
 
 ### 3. Run an individual chart
 

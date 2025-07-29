@@ -15,28 +15,34 @@ else:
     _PROJ = {}
 
 # ──────────────────────────────────────────────────────────────
-def apply_common_layout(fig: go.Figure, scale: float = 1.0) -> go.Figure:
+def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure:
     """
-    Apply standard styling and layout to the figure.
-    - No project name, no logo, no footer caption
-    - Legend directly below plot
-    - Fonts scale with resolution
+    Apply academic layout with scaling based on image type:
+    - image_type = "dev"    → for fast low-res preview
+    - image_type = "report" → for high-res publication-ready
     """
+    scale_map = {"dev": 1.0, "report": 2.0}
+    scale = scale_map.get(image_type, 1.0)
 
-    base_font = 14 * scale
-    title_font = 20 * scale
+    # Font settings
+    base_font   = 13 * scale
+    title_font  = 20 * scale
     legend_font = 13 * scale
-    tick_font = int(base_font * 1.2)
+    tick_font   = int(base_font * 1.1)
 
     fig.update_layout(
         template="simple_white",
         height=int(600 * scale),
-        font=dict(family="Arial", size=base_font),
-        margin=dict(l=80, r=80, t=80, b=int(120 * scale)),
+        font=dict(family="Times New Roman", size=base_font, color="black"),
+        margin=dict(l=80, r=80, t=60, b=int(100 * scale)),
+        title=dict(
+            font=dict(family="Times New Roman", size=title_font),
+            x=0.5, xanchor="center"
+        ),
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=-0.10,  # move closer to x-axis
+            y=-0.25,  # prevents overlap with x-axis
             xanchor="center",
             x=0.5,
             font=dict(size=legend_font)
@@ -46,7 +52,7 @@ def apply_common_layout(fig: go.Figure, scale: float = 1.0) -> go.Figure:
                 type="rect",
                 xref="paper", yref="paper",
                 x0=0, x1=1,
-                y0=-0.2, y1=0,
+                y0=-0.30, y1=0,
                 fillcolor="white",
                 line=dict(color="lightgrey"),
                 layer="below",
@@ -54,50 +60,52 @@ def apply_common_layout(fig: go.Figure, scale: float = 1.0) -> go.Figure:
         ]
     )
 
-    # X-axis
-   # fig.update_xaxes(
-   #     showgrid=True,
-   #     gridwidth=1,
-   #     gridcolor="lightgrey",
-   #     tickangle=0,
-   #     title_font=dict(family="Arial", size=title_font),
-   #     tickfont=dict(size=tick_font),
-   #     tickmode="linear",  # ensures consistent spacing
-   #     dtick=5,            # adjust if needed (e.g. 5-year steps)
-   #     # leave range control to generator unless issues arise
-   # )
-
-    # Y-axis
-   # fig.update_yaxes(
-    #    showgrid=True,
-    #    gridwidth=1,
-    #    gridcolor="lightgrey",
-    #    title_font=dict(family="Arial", size=title_font),
-    #    tickfont=dict(size=base_font),
-   #     rangemode="tozero",  # avoids overshooting upper limit
-    #)
     fig.update_xaxes(
         showgrid=True,
-        gridwidth=1,
+        gridwidth=0.6,
         gridcolor="lightgrey",
+        tickangle=0,
+        ticks="outside",
+        ticklen=5,
+        tickfont=dict(size=tick_font, family="Times New Roman"),
+        title_font=dict(size=title_font, family="Times New Roman"),
         tickmode="linear",
         dtick=5,
-        mirror=True,  # <-- this adds top/right axis borders
-        ticks="outside",
-        showline=True,  # show bottom/top axis line
-        linecolor="lightgrey"
+        showline=True,
+        mirror=True,
+        linecolor="darkgrey",
+        linewidth=1.2,
+        minor=dict(
+            ticks="outside",
+            showgrid=True,
+            gridcolor="whitesmoke",
+            ticklen=3,
+            tick0=0,
+            dtick=1
+        )
     )
 
     fig.update_yaxes(
         showgrid=True,
-        gridwidth=1,
+        gridwidth=0.6,
         gridcolor="lightgrey",
-        rangemode="tozero",
-        mirror=True,  # <-- this adds right-side axis line
         ticks="outside",
+        ticklen=5,
+        tickfont=dict(size=tick_font, family="Times New Roman"),
+        title_font=dict(size=title_font, family="Times New Roman"),
+        rangemode="tozero",
         showline=True,
-        linecolor="lightgrey"
+        mirror=True,
+        linecolor="darkgrey",
+        linewidth=1.2,
+        minor=dict(
+            ticks="outside",
+            showgrid=True,
+            gridcolor="whitesmoke",
+            ticklen=3,
+            tick0=0,
+            dtick=25000
+        )
     )
-
 
     return fig
