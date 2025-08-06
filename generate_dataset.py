@@ -18,8 +18,7 @@ RAW_PATH = "data/raw/REPORT_00.csv"
 OUT_PATH = "data/processed/processed_dataset.csv"
 
 # 3) Your local Sets & Maps file in OneDrive
-path_setsandmaps = r"C:\Users\savan\OneDrive\Documents\GitHub\SATIMGE_Veda\setsandmaps\setsandmaps.xlsm"
-
+path_setsandmaps = r"C:\Models\SATIMGE_Veda\SetsAndMaps\SetsAndMaps.xlsm"
 print('reading in raw data file')
 df = pd.read_csv(RAW_PATH)
 

@@ -85,7 +85,7 @@ def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
 
     fig = apply_common_layout(fig)
     fig.update_layout(
-        title="Figure 2: Range of Total CO₂ Emissions by Scenario Group (Shaded Bands)",
+        title="Figure 2: Projected CO₂ Emissions by Scenario Group<br><sup>Central estimates (lines) and full range across scenarios (shaded)</sup>",
         xaxis_title="Year",
         yaxis_title="CO₂ Emissions (kt)"
     )

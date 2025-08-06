@@ -1,10 +1,8 @@
-# charts/common/style.py
 
 import yaml
 from pathlib import Path
 import plotly.graph_objects as go
 
-# ──────────────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parents[2]
 _CFG_PATH = ROOT / "config.yaml"
 if _CFG_PATH.exists():
@@ -14,21 +12,14 @@ if _CFG_PATH.exists():
 else:
     _PROJ = {}
 
-# ──────────────────────────────────────────────────────────────
 def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure:
-    """
-    Apply academic layout with scaling based on image type:
-    - image_type = "dev"    → for fast low-res preview
-    - image_type = "report" → for high-res publication-ready
-    """
     scale_map = {"dev": 1.0, "report": 2.0}
     scale = scale_map.get(image_type, 1.0)
 
-    # Font settings
     base_font   = 13 * scale
-    title_font  = 20 * scale
-    legend_font = 13 * scale
-    tick_font   = int(base_font * 1.1)
+    title_font  = 18 * scale
+    legend_font = 12 * scale
+    tick_font   = int(base_font * 0.8)
 
     fig.update_layout(
         template="simple_white",
@@ -37,12 +28,13 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         margin=dict(l=80, r=80, t=60, b=int(100 * scale)),
         title=dict(
             font=dict(family="Times New Roman", size=title_font),
-            x=0.5, xanchor="center"
+            x=0.5, xanchor="center",
+            pad=dict(b=80)
         ),
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=-0.25,  # prevents overlap with x-axis
+            y=-0.15,
             xanchor="center",
             x=0.5,
             font=dict(size=legend_font)
@@ -73,7 +65,7 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         dtick=5,
         showline=True,
         mirror=True,
-        linecolor="darkgrey",
+        linecolor="lightgrey",
         linewidth=1.2,
         minor=dict(
             ticks="outside",
@@ -96,7 +88,7 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         rangemode="tozero",
         showline=True,
         mirror=True,
-        linecolor="darkgrey",
+        linecolor="lightgrey",
         linewidth=1.2,
         minor=dict(
             ticks="outside",
