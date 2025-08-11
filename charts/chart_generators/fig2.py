@@ -1,4 +1,4 @@
-# charts/chart_generators/fig3_ndc_emissions_by_sector.py
+# change in emissions 2024 to 2035, by sector, with grey points for all others
 
 import sys
 from pathlib import Path
@@ -27,16 +27,19 @@ else:
     dev_mode = False
 
 
-def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> None:
-    print("generating figure 3")
+def generate_fig2(df: pd.DataFrame, output_dir: str) -> None:
+    print("generating figure 2")
     print(f"🛠️  dev_mode = {dev_mode}")
     print(f"📂 Output directory: {output_dir}")
+    
+    df["CO2eq"] = df["CO2eq"]*0.001 #convert to Mt
 
     subset = df[
         (df["CO2eq"] != 0.0) &
         (df["Scenario"] == "NDC_BASE-RG") &
         (df["Year"].isin([2024, 2035]))
     ].copy()
+
 
     def map_sector_group(sector):
         if sector in ["Industry", "Process emissions"]:
@@ -67,6 +70,8 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
     y_pos = {label: i for i, label in enumerate(ordered_label_list)}
 
     fig = go.Figure()
+
+    # create 2024 value on chart
     part_2024 = data[data["Year"] == 2024]
     fig.add_trace(go.Scatter(
         x=part_2024["CO2eq"],
@@ -76,6 +81,7 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
         marker=dict(size=10, color="red", symbol="circle")
     ))
 
+    #create 2035 value on chart
     part_2035 = data[data["Year"] == 2035]
     fig.add_trace(go.Scatter(
         x=part_2035["CO2eq"],
@@ -85,11 +91,13 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
         marker=dict(size=10, color="blue", symbol="x")
     ))
 
+    #add a scatter of all other scenarios in the datafile
     other_scenarios = df[
         (df["CO2eq"] != 0.0) &
         (df["Scenario"] != "NDC_BASE-RG") &
         (df["Year"].isin([2024, 2035]))
     ].copy()
+
     other_scenarios["SectorGroup"] = other_scenarios["Sector"].apply(map_sector_group)
     other_scenarios["SectorLabel"] = other_scenarios["SectorGroup"].map(label_map)
 
@@ -100,7 +108,7 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
             y=part["SectorLabel"],
             mode="markers",
             name=f"{yr} (others)",
-            marker=dict(size=6, color="lightgrey", symbol=symbol),
+            marker=dict(size=10, color="grey", symbol=symbol),
             showlegend=False,
             opacity=0.4
         ))
@@ -121,18 +129,25 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
             )
 
     fig = apply_common_layout(fig)
-    fig.update_xaxes(showgrid=True, automargin=True, nticks=6)
+    #fig.update_xaxes(showgrid=True, automargin=True, nticks=6)
     fig.update_yaxes(showgrid=True)
+
     fig.update_layout(
-        title="Fig 3: NDC_BASE-RG Emissions by Aggregate Sector Group (Δ 2035–2024)",
-        xaxis=dict(title="CO₂eq (kt)", rangemode="tozero"),
+        title="",
+        xaxis=dict(
+            title="Mt CO₂eq",
+            #rangemode="tozero",
+            range=[-50, 200],
+            tickmode="auto"  # ← fixes tick misalignment
+        ),
         yaxis=dict(
-            title="Sector Group (Δ 2035–2024)",
+            title="Sector",
             type="category",
             categoryorder="array",
             categoryarray=ordered_label_list
         )
     )
+
 
     if dev_mode:
         print("👩‍💻 dev_mode ON — showing chart only (no export)")
@@ -147,6 +162,6 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
 
 if __name__ == "__main__":
     df = pd.read_parquet(project_root / "data/processed/processed_dataset.parquet")
-    out = project_root / "outputs/charts_and_data/fig3_ndc_emissions_by_sector"
+    out = project_root / "outputs/charts_and_data/fig2"
     out.mkdir(parents=True, exist_ok=True)
-    generate_fig3_ndc_emissions_by_sector(df, str(out))
+    generate_fig2(df, str(out))

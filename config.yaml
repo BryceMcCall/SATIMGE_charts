@@ -4,7 +4,7 @@ project:
   name: "Energy Systems Research Group: NDC2 Mitigation Technical Analysis"
   logo_path: "charts/common/ESRG sm colour.jpg"    # relative to project root
 
-dev_mode: true
+dev_mode: false
 
 charts:
   include:       # if you leave this out or set to [], we auto-run all

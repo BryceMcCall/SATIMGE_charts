@@ -1,4 +1,5 @@
-# charts/chart_generators/fig2_shaded.py
+#SHADED families chart
+
 
 import sys
 from pathlib import Path
@@ -103,3 +104,5 @@ if __name__ == "__main__":
     out = project_root / "outputs/charts_and_data/fig2_shaded"
     out.mkdir(parents=True, exist_ok=True)
     generate_fig2_shaded(df, str(out))
+
+

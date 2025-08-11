@@ -1,4 +1,6 @@
-# charts/chart_generators/fig1_total_emissions.py
+# Emissions line chart for BASE only
+# 
+# 
 
 import sys
 from pathlib import Path
@@ -26,11 +28,25 @@ else:
 def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
     print("generating figure 1")
 
+    selected_scenarios = ["NDC_BASE-LG", "NDC_BASE-RG", "NDC_BASE-HG"]
+    year_select = range(2024,2036,1)
+    # Define custom color mapping
+    scenario_colors = {
+        "NDC_BASE-LG": "#8ac41fe2",  
+        "NDC_BASE-RG": "#1E1BD3",  
+        "NDC_BASE-HG": "#d46820",  
+    }
+
+
+    df = df[(df["Scenario"].isin(selected_scenarios))&(df["Year"].isin(year_select))]
+    
+
     data = (
-        df.groupby(["ScenarioFamily", "Scenario", "Year"])["CO2eq"]
+        df.groupby(["Scenario", "Year"])["CO2eq"]
         .sum()
         .reset_index()
     )
+    data['CO2eq'] = data['CO2eq']*0.001 #convert to Mt
 
     fig = go.Figure()
     for scenario in data["Scenario"].unique():
@@ -39,16 +55,29 @@ def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
             x=subset["Year"],
             y=subset["CO2eq"],
             mode="lines",
-            line=dict(width=1, color="lightgray"),
-            showlegend=False
+            name = scenario,
+            line=dict(width=2, color= scenario_colors.get(scenario)),
+            showlegend=True
         ))
 
     fig = apply_common_layout(fig)
 
     fig.update_layout(
         title="",
-        xaxis_title="Year",
-        yaxis_title="CO₂eq (kt)"
+        xaxis_title="",
+        yaxis_title="Mt CO₂eq",
+        xaxis=dict(
+            range=[2024, 2035],
+            tickmode="linear",
+            dtick=1),
+
+        legend=dict(
+            orientation="h",
+            #yanchor="top",
+            xanchor="center",
+            y = -0.15  #move it to underneath
+        )
+        
     )
 
     print("saving figure 1")

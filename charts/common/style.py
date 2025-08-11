@@ -24,7 +24,7 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
     fig.update_layout(
         template="simple_white",
         height=int(600 * scale),
-        font=dict(family="Times New Roman", size=base_font, color="black"),
+        font=dict(family="Arial", size=base_font, color="black"),
         margin=dict(l=80, r=80, t=60, b=int(100 * scale)),
         title=dict(
             font=dict(family="Times New Roman", size=title_font),
