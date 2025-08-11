@@ -8,11 +8,15 @@ dev_mode: false
 
 charts:
   include:       # if you leave this out or set to [], we auto-run all
-    - fig1_total_emissions
-    - fig2_shaded
+    - fig1
+    - fig2
+    - fig3
+    - fig4_coal_capacity_line
     - fig3b_ndc_emissions_by_sector
     - fig4_2035_stacked_bar_by_scenarios
     - fig5_base_reference_emissions
+    - fig07_electricity_ghgs
+    - fig_shadedfamilies
 
   exclude:
   - Secunda-Scop1-CO2 emission-All scenarios

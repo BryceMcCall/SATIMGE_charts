@@ -32,7 +32,7 @@ def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
     year_select = range(2024,2036,1)
     # Define custom color mapping
     scenario_colors = {
-        "NDC_BASE-LG": "#8ac41fe2",  
+        "NDC_BASE-LG": "#8ac41f",  # fixed hex color
         "NDC_BASE-RG": "#1E1BD3",  
         "NDC_BASE-HG": "#d46820",  
     }
@@ -89,7 +89,27 @@ def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
 
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[2]
-    df = pd.read_parquet(project_root / "data/processed/processed_dataset.parquet")
+    parquet_path = project_root / "data/processed/processed_dataset.parquet"
+    # Only load necessary columns
+    columns_needed = ["Scenario", "Year", "CO2eq"]
+    # Read in chunks and filter as we go (if pyarrow is available)
+    try:
+        import pyarrow.parquet as pq
+        selected_scenarios = ["NDC_BASE-LG", "NDC_BASE-RG", "NDC_BASE-HG"]
+        year_select = list(range(2024, 2036))
+        table = pq.read_table(
+            parquet_path,
+            columns=columns_needed,
+        )
+        df = table.to_pandas()
+        df = df[(df["Scenario"].isin(selected_scenarios)) & (df["Year"].isin(year_select))]
+    except ImportError:
+        # Fallback to pandas, but still only load columns
+        df = pd.read_parquet(parquet_path, columns=columns_needed)
+        selected_scenarios = ["NDC_BASE-LG", "NDC_BASE-RG", "NDC_BASE-HG"]
+        year_select = list(range(2024, 2036))
+        df = df[(df["Scenario"].isin(selected_scenarios)) & (df["Year"].isin(year_select))]
+
     out = project_root / "outputs/charts_and_data/fig1_total_emissions"
     out.mkdir(parents=True, exist_ok=True)
     generate_fig1_total_emissions(df, str(out))

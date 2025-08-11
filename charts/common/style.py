@@ -1,4 +1,3 @@
-
 import yaml
 from pathlib import Path
 import plotly.graph_objects as go
@@ -24,10 +23,10 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
     fig.update_layout(
         template="simple_white",
         height=int(600 * scale),
-        font=dict(family="Arial", size=base_font, color="black"),
+        font=dict(family="Aptos", size=base_font, color="black"),
         margin=dict(l=80, r=80, t=60, b=int(100 * scale)),
         title=dict(
-            font=dict(family="Times New Roman", size=title_font),
+            font=dict(family="Aptos", size=title_font),
             x=0.5, xanchor="center",
             pad=dict(b=80)
         ),
@@ -59,8 +58,8 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         tickangle=0,
         ticks="outside",
         ticklen=5,
-        tickfont=dict(size=tick_font, family="Times New Roman"),
-        title_font=dict(size=title_font, family="Times New Roman"),
+        tickfont=dict(size=tick_font, family="Aptos"),
+        title_font=dict(size=title_font, family="Aptos"),
         tickmode="linear",
         dtick=5,
         showline=True,
@@ -83,8 +82,8 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         gridcolor="lightgrey",
         ticks="outside",
         ticklen=5,
-        tickfont=dict(size=tick_font, family="Times New Roman"),
-        title_font=dict(size=title_font, family="Times New Roman"),
+        tickfont=dict(size=tick_font, family="Aptos"),
+        title_font=dict(size=title_font, family="Aptos"),
         rangemode="tozero",
         showline=True,
         mirror=True,
@@ -100,4 +99,5 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         )
     )
 
+    return fig
     return fig
