@@ -9,7 +9,7 @@ if __name__ == "__main__" and __package__ is None:
 
 import pandas as pd
 import plotly.graph_objects as go
-from charts.common.style import apply_common_layout, color_for, color_sequence
+from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -26,149 +26,188 @@ else:
     dev_mode = False
 
 
+def _add_footer_legend(fig: go.Figure, items, domain, *,
+                       y=-0.18, per_row=6, swatch_w=0.015, swatch_h=0.02, gap=0.006,
+                       font_size=12):
+    """
+    Draw a legend-like footer under a subplot.
+    - items: list[tuple(name, color)]
+    - domain: (x0, x1) of the subplot (fig.layout.xaxis(N).domain)
+    - y: vertical paper coordinate for the first row (negative places it below)
+    """
+    x0, x1 = float(domain[0]), float(domain[1])
+    width = x1 - x0
 
-def generate_ElecTWh_chart(df: pd.DataFrame,  output_dir: str) -> go.Figure:
-    # Example colour mapping for subsectors
-    
-    color_map = {
-        "ECoal": "#505457", #the bottom
+    # horizontal cell size (swatch + gap + text space). We distribute evenly.
+    cols = max(1, per_row)
+    cell_w = width / cols
+
+    row = 0
+    col = 0
+    for name, color in items:
+        # left edge of this cell
+        cell_left = x0 + col * cell_w
+        # swatch rectangle position
+        rect_x0 = cell_left
+        rect_x1 = rect_x0 + swatch_w
+        rect_y0 = y - row * (swatch_h + 0.05)
+        rect_y1 = rect_y0 + swatch_h
+
+        fig.add_shape(
+            type="rect",
+            xref="paper", yref="paper",
+            x0=rect_x0, x1=rect_x1, y0=rect_y0, y1=rect_y1,
+            line=dict(width=1, color=color),
+            fillcolor=color,
+            layer="above"
+        )
+
+        # label annotation (aligned left, a small gap after swatch)
+        label_x = rect_x1 + gap
+        label_y = rect_y0 + swatch_h / 2.0
+        fig.add_annotation(
+            xref="paper", yref="paper",
+            x=label_x, y=label_y,
+            xanchor="left", yanchor="middle",
+            text=name,
+            showarrow=False,
+            font=dict(size=font_size)
+        )
+
+        col += 1
+        if col >= cols:
+            col = 0
+            row += 1
+
+
+def generate_ElecTWh_chart(df: pd.DataFrame, output_dir: str) -> go.Figure:
+    # Colour mapping for subsectors (Sent out, left subplot)
+    color_map_left = {
+        "ECoal": "#505457",
         "ENuclear": "#ca1d90",
-        "EImports": "#9467bd",
         "EHydro": "#8c564b",
         "EGas": "#ee2c4c",
-        "EOil":"#e66177",
+        "EOil": "#e66177",
         "EBiomass": "#03ff2d",
         "EWind": "#3f1ae6",
-        "Solar PV": "#e6e21a",
         "EPV": "#e6e21a",
-        "ECSP":  "#fc5c34",
-        "Other": "#e377c2"
+        "ECSP": "#fc5c34",
+        "EHybrid": "#b39ddb",
+        "Imports": "#9467bd",
     }
 
+    # Colour mapping for consumption sectors (Electricity use, right subplot)
+    color_map_right = {
+        "Industry": "#f28e2b",
+        "Residential": "#59a14f",
+        "Commerce": "#4e79a7",
+        "Transport": "#e15759",
+        "Supply": "#76b7b2",
+        "Agriculture": "#8cd17d",
+    }
 
-    #exclude this stuff:
+    # Exclude processes not needed
+    pwr_exclude = ["ETrans", "EDist", "EBattery", "EPumpStorage", "Demand", "AutoGen-Chemcials"]
 
-    pwr_exclude = ["ETrans","EDist","EBattery","EPumpStorage","Demand","AutoGen-Chemcials"]
-
-    # Filter data for relevant years & sector
+    # -------- Left subplot data (Sent out)
     filtered_pwr = df[
-        (df["Scenario"] == "NDC_BASE-RG") &
-        (df["Sector"] == "Power") &
-        (df["Year"].between(2024, 2035))&
-        (~df["Subsector"].isin(pwr_exclude))
+        (df["Scenario"] == "NDC_BASE-RG")
+        & (df["Sector"] == "Power")
+        & (df["Year"].between(2024, 2035))
+        & (~df["Subsector"].isin(pwr_exclude))
     ].copy()
 
-    # =========================== Chart 1: Sent out
     df_pwr_out = (
-    filtered_pwr[(filtered_pwr["Indicator"] == "FlowOut")&
-                 (filtered_pwr["Commodity"] == "ELCC")]
-    .groupby(["Year", "Subsector"], as_index=False)["SATIMGE"]
-    .sum()
+        filtered_pwr[
+            (filtered_pwr["Indicator"] == "FlowOut") & (filtered_pwr["Commodity"] == "ELCC")
+        ]
+        .groupby(["Year", "Subsector"], as_index=False)["SATIMGE"]
+        .sum()
     )
+    df_pwr_out["SATIMGE"] *= (1 / 3.6)  # to TWh
 
-    #convert to TWh
-    df_pwr_out["SATIMGE"] = df_pwr_out["SATIMGE"] * (1/3.6)  # Convert to TWh
-    fig1 = px.area(
+    fig_left = px.area(
         df_pwr_out,
         x="Year",
         y="SATIMGE",
         color="Subsector",
-        color_discrete_map=color_map,
-        category_orders={"Subsector": list(color_map.keys())}
+        color_discrete_map=color_map_left,
+        category_orders={"Subsector": list(color_map_left.keys())}
     )
 
-    # ======================== Chart 2: TWh Consumed
-    color_map_sectors = {
-        "Industry": "#a79eaf", #the bottom
-        "Residential": "#ca1d90",
-        "Commerce": "#9467bd",
-        "Transport": "#51d467",
-        "Supply": "#5077f8"
-    }
+    # -------- Right subplot data (Electricity use)
+    use_keep = ["Agriculture", "Commerce", "Industry", "Residential", "Transport", "Supply"]
+    df_use = df[
+        (df["Scenario"] == "NDC_BASE-RG")
+        & (df["Sector"] != "Power")
+        & (df["Year"].between(2024, 2035))
+        & (df["Indicator"] == "FlowIn")
+        & (df["Short Description"] == "Electricity")
+        & (df["Sector"].isin(use_keep))
+    ].copy()
 
-    elc_use_incl = ["Agriculture","Commerce","Industry","Residential","Transport","Supply"]
+    df_use["SATIMGE"] *= (1 / 3.6)  # to TWh
+    df_use = df_use.groupby(["Year", "Sector"], as_index=False)["SATIMGE"].sum()
 
-    df_TWh_consumed = df[
-        (df["Scenario"] == "NDC_BASE-RG") &
-        (df["Sector"] != "Power") &
-        (df["Year"].between(2024, 2035))&
-        (df["Indicator"] == "FlowIn") &
-        (df["Short Description"] == "Electricity") &
-        (df["Sector"].isin(elc_use_incl))
-    ].copy()  # <-- Add .copy() here
-
-    df_TWh_consumed["SATIMGE"] = df_TWh_consumed["SATIMGE"] * (1/3.6)  # Convert to TWh
-
-
-    df_TWh_consumed = df_TWh_consumed.groupby(["Year", "Sector"], as_index=False)["SATIMGE"].sum()
-
-
-
-    fig2 = px.bar(
-        df_TWh_consumed,
+    fig_right = px.bar(
+        df_use,
         x="Year",
         y="SATIMGE",
         color="Sector",
-        color_discrete_map=color_map_sectors,
-        category_orders={"Sector": list(color_map_sectors.keys())}
+        color_discrete_map=color_map_right,
+        category_orders={"Sector": list(color_map_right.keys())}
     )
 
-    # Create subplot figure
+    # -------- Compose subplots
     fig = make_subplots(
         rows=1, cols=2,
         subplot_titles=("Sent out", "Electricity use"),
         shared_yaxes=True
     )
 
-    # Add traces (keep same legend group for both charts)
-    for trace in fig1.data:
-        trace.showlegend = True  # Legend only from first chart
-        fig.add_trace(trace, row=1, col=1)
+    for tr in fig_left.data:
+        tr.showlegend = False  # we'll draw footer legends manually
+        fig.add_trace(tr, row=1, col=1)
 
-    for trace in fig2.data:
-        trace.showlegend = True  
-        fig.add_trace(trace, row=1, col=2)
+    for tr in fig_right.data:
+        tr.showlegend = False
+        fig.add_trace(tr, row=1, col=2)
 
     fig = apply_common_layout(fig)
 
-    # Layout tweaks
     fig.update_layout(
         barmode="stack",
-        width=1000,
-        height=500,
+        width=1100,
+        height=600,
+        showlegend=False,          # ensure the default legend is off
         legend_title_text="",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=-0.4,
-            xanchor="center",
-            x=0.5
-        ),
-
-        xaxis=dict(
-        tickmode="linear",
-        dtick=1,
-        tickangle=45
-        ),
-        xaxis2=dict(
-            tickmode="linear",
-            dtick=1,
-            tickangle=45
-        )
+        xaxis=dict(tickmode="linear", dtick=1, tickangle=45),
+        xaxis2=dict(tickmode="linear", dtick=1, tickangle=45),
+        margin=dict(l=70, r=30, t=70, b=120)  # extra bottom room for footer legends
     )
 
-    
+    # -------- Add footer legends under each subplot
+    left_domain = fig.layout.xaxis.domain
+    right_domain = fig.layout.xaxis2.domain
+
+    # Build ordered lists of (name, color)
+    left_items = [(k, color_map_left[k]) for k in color_map_left.keys()]
+    right_items = [(k, color_map_right[k]) for k in color_map_right.keys()]
+
+    _add_footer_legend(fig, left_items, left_domain, y=-0.16, per_row=6, font_size=12)
+    _add_footer_legend(fig, right_items, right_domain, y=-0.16, per_row=6, font_size=12)
 
     if dev_mode:
         print("👩‍💻 dev_mode ON — showing chart only (no export)")
-        #fig.show() this crashes the script.
-
     else:
         print("💾 saving figure and data")
         save_figures(fig, output_dir, name="ElecTWh_sentOut_consumed")
         Path(output_dir).mkdir(parents=True, exist_ok=True)
+        # also save the data used for sanity checks
         df_pwr_out.to_csv(Path(output_dir) / "data.csv", index=False)
-        df_TWh_consumed.to_csv(Path(output_dir) / "data2.csv", index=False)
+        df_use.to_csv(Path(output_dir) / "data2.csv", index=False)
+
+    return fig
 
 
 if __name__ == "__main__":

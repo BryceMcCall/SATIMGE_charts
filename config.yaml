@@ -9,6 +9,26 @@ dev_mode: false
 charts:
   include:
     - fig_ElecSentOutDemand
+    # - fig_newPWR
+    # - fig_shadedfamilies
+    # - fig_newPWR_colour2
+    # - fig_elecsentoutdemand_colour2
+    # - fig1
+    # - fig2
+    # - fig3
+    # - fig3_ndc_emissions_by_sector
+    # - fig3b_ndc_emissions_by_sector
+    # - fig4_2035_stacked_bar_by_scenarios
+    # - fig4_coal_capacity_line
+    # - fig5_base_reference_emissions
+       # if you leave this out or set to [], we auto-run all
+    
+
+  exclude:
+  - Secunda-Scop1-CO2 emission-All scenarios
+  - Secunda-Scop1-CO2 emission-Scenario family
+  - CO2 based on national inventory
+  - Scunda FT's products
     - fig_newPWR
     - fig_shadedfamilies
     - fig_newPWR_colour2
@@ -21,25 +41,7 @@ charts:
     - fig4_2035_stacked_bar_by_scenarios
     - fig4_coal_capacity_line
     - fig5_base_reference_emissions
-       # if you leave this out or set to [], we auto-run all
-    
-
-  exclude:
-  - Secunda-Scop1-CO2 emission-All scenarios
-  - Secunda-Scop1-CO2 emission-Scenario family
-  - CO2 based on national inventory
-  - Scunda FT's products
-  - fig3_ndc_emissions_by_sector
-  - fig07_electricity_ghgs
-    # - fig_shadedfamilies
-    # - fig1
-    # - fig2
-    # - fig3
-    # - fig3_ndc_emissions_by_sector
-    # - fig3b_ndc_emissions_by_sector
-    # - fig4_2035_stacked_bar_by_scenarios
-    # - fig4_coal_capacity_line
-    # - fig5_base_reference_emissions
+      # - fig_ElecSentOutDemand
 
 output:
   formats:    # file formats to write
