@@ -9,7 +9,7 @@ if __name__ == "__main__" and __package__ is None:
 
 import pandas as pd
 import plotly.graph_objects as go
-from charts.common.style import apply_common_layout
+from charts.common.style import apply_common_layout, color_for, color_sequence
 from charts.common.save import save_figures
 
 import yaml
