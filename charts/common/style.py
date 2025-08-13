@@ -21,149 +21,114 @@ else:
 FONT_FAMILY = "Aptos, Arial, Segoe UI, Calibri, Helvetica, sans-serif"
 
 # ───────────────────────────── Base palettes ──────────────────────────────────
-# Fuels / energy sources (curated; add as needed)
+# Fuels / technologies — aligned to fig_newPWR hard-coded palette
 FUEL_COLORS = {
-    # Fossils & liquids
-    "Coal":             "#2E2E2E",  # near-black
-    "Oil":              "#5B4636",  # crude brown (generic oil if used)
-    "Diesel":           "#8B5E34",  # diesel brown
-    "Gasoline":         "#C97C28",  # amber
-    "Kerosene/Jet":     "#A1662F",  # bronze
-    "LPG":              "#7A4F9A",  # violet
-    "Natural Gas":      "#1E90FF",  # blue
-    "Syngas":           "#4F81BD",  # steel blue
-    "Nuclear":          "#A3C644",  # yellow-green
+    # Palette from fig_newPWR
+    "Coal":             "#505457",  # ECoal
+    "Nuclear":          "#ca1d90",  # ENuclear
+    "Hydro":            "#8c564b",  # EHydro
+    "Natural Gas":      "#ee2c4c",  # EGas
+    "Oil":              "#e66177",  # EOil
+    "Biomass":          "#03ff2d",  # EBiomass
+    "Wind":             "#3f1ae6",  # EWind
+    "Solar PV":         "#e6e21a",  # EPV / "Solar PV"
+    "Solar CSP":        "#fc5c34",  # ECSP
+    "Imports":          "#9467bd",  # EImports / Imports
+    "Other":            "#e377c2",
 
-    # Low-carbon / renewables
-    "Electricity":      "#7E57C2",  # amethyst
-    "Hydrogen":         "#00AEEF",  # hydrogen cyan
-    "Biomass":          "#8FBC8F",  # sage green
-    "Bioethanol":       "#3CB371",  # biofuel green
-    "Hydro":            "#2B6CB0",  # deep hydro blue
-    "Wind":             "#7F8C8D",  # cool grey
-    "Solar PV":         "#FDB813",  # solar yellow
-    "Solar CSP":        "#F39C12",  # solar orange
-    "Geothermal":       "#C0392B",  # hot red
-    "Waste":            "#6E7D57",  # olive grey
-    "Wood/Wood Waste":  "#8D6E63",  # wood brown
-
-    # Other buckets seen in legends
-    "Imports":          "#F5B041",  # goldenrod
-    "Hybrid":           "#8E44AD",  # distinct purple
-    "AutoGen-Chemical": "#48C9B0",  # teal
-
-    # Fallback
-    "Other":            "#9E9E9E",  # neutral grey
+    # Additional techs retained from previous palette
+    "Diesel":           "#8B5E34",
+    "Gasoline":         "#C97C28",
+    "Kerosene/Jet":     "#A1662F",
+    "LPG":              "#7A4F9A",
+    "Syngas":           "#4F81BD",
+    "Hydrogen":         "#00AEEF",
+    "Electricity":      "#7E57C2",
+    "Bioethanol":       "#3CB371",
+    "Geothermal":       "#C0392B",
+    "Waste":            "#6E7D57",
+    "Wood/Wood Waste":  "#8D6E63",
+    "Hybrid":           "#8E44AD",
+    "AutoGen-Chemical": "#48C9B0",
 }
 
-# Sectors (aligned to common energy system reporting)
+# Sectors (unchanged)
 SECTOR_COLORS = {
-    "Power":        "#6A1B9A",  # generation/supply
-    "Electricity":  "#6A1B9A",  # alias
+    "Power":        "#6A1B9A",
+    "Electricity":  "#6A1B9A",
     "Industry":     "#FF7F0E",
-    "IPPU":         "#FF7F0E",  # align with industry/process
+    "IPPU":         "#FF7F0E",
     "Transport":    "#D62728",
     "Residential":  "#2E7D32",
     "Commercial":   "#0097A7",
     "Buildings":    "#1B998B",
     "Agriculture":  "#7CB342",
-    "AFOLU":        "#7CB342",  # alias
+    "AFOLU":        "#7CB342",
     "Waste":        "#616161",
     "Mining":       "#A1887F",
     "Other Energy": "#BCBD22",
-    "Refineries":   "#FF7F0E",  # industry-aligned
-
-    # Extra labels seen in electricity-use charts
-    "Supply":       "#4E79A7",  # steel blue
-    "Commerce":     "#0097A7",  # same hue as Commercial
+    "Refineries":   "#FF7F0E",
+    "Supply":       "#4E79A7",
+    "Commerce":     "#0097A7",
 }
 
-# Scenario GROUPS (used to colour individual scenarios)
-# NDC appears in most names, so it is intentionally ignored for colour selection.
+# Scenario GROUPS (used for scenario hues)
 SCENARIO_GROUP_COLORS = {
-    "BASE":        "#7F7F7F",  # neutral grey
-    "CPP":         "#1F77B4",  # blue
-    "High Carbon": "#8C564B",  # brown/red
-    "Low Carbon":  "#2CA02C",  # green
+    "BASE":        "#7F7F7F",
+    "CPP":         "#1F77B4",
+    "High Carbon": "#8C564B",
+    "Low Carbon":  "#2CA02C",
 }
 
-# Scenario FAMILIES (for plots grouped by family)
+# Scenario FAMILIES (for family-centric charts)
 SCENARIO_FAMILY_COLORS = {
     "BASE":         "#7F7F7F",
-    "CPP1":         "#1F77B4",  # deep blue
-    "CPP2":         "#2E86C1",  # mid blue
-    "CPP3":         "#5DADE2",  # light blue
-    "CPP4 Variant": "#85C1E9",  # pale blue
+    "CPP1":         "#1F77B4",
+    "CPP2":         "#2E86C1",
+    "CPP3":         "#5DADE2",
+    "CPP4 Variant": "#85C1E9",
     "High Carbon":  "#8C564B",
     "Low Carbon":   "#2CA02C",
 }
 
-# Optional explicit overrides for particular scenario names (usually keep empty)
+# Optional explicit per-scenario overrides (usually keep empty)
 SCENARIO_COLORS: dict[str, str] = {}
 
 DEFAULT_COLOR = "#9E9E9E"
 
-# Distinct fallback cycle for any unseen categories
+# Distinct fallback cycle for unseen categories
 FALLBACK_CYCLE = [
     "#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD",
     "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF",
     "#393B79", "#637939", "#8C6D31", "#843C39", "#7B4173",
 ]
 
-# ─────────────── Aliases / normalizers (extend as you discover labels) ───────
+# ─────────────── Aliases / normalizers (includes E-prefixed legends) ─────────
 FUEL_ALIASES = {
-    # Canonical single tokens
-    "COAL": "Coal",
+    # Canonical tokens
+    "COAL": "Coal", "NUCLEAR": "Nuclear", "HYDRO": "Hydro", "WIND": "Wind",
+    "PV": "Solar PV", "CSP": "Solar CSP", "BIOMASS": "Biomass",
+    "BIOETHANOL": "Bioethanol", "DIESEL": "Diesel", "GASOLINE": "Gasoline",
+    "GAS": "Natural Gas", "NG": "Natural Gas", "LNG": "Natural Gas",
+    "HYDROGEN": "Hydrogen", "H2": "Hydrogen",
+    "ELECTRIC": "Electricity", "ELECTRICITY": "Electricity",
+    "KEROSENE": "Kerosene/Jet", "JET": "Kerosene/Jet",
     "OIL": "Oil",
-    "NUCLEAR": "Nuclear",
-    "HYDRO": "Hydro",
-    "WIND": "Wind",
-    "PV": "Solar PV",
-    "CSP": "Solar CSP",
-    "BIOMASS": "Biomass",
-    "BIOETHANOL": "Bioethanol",
-    "DIESEL": "Diesel",
-    "GASOLINE": "Gasoline",
-    "GAS": "Natural Gas",
-    "NG": "Natural Gas",
-    "LNG": "Natural Gas",
-    "HYDROGEN": "Hydrogen",
-    "H2": "Hydrogen",
-    "ELECTRIC": "Electricity",
-    "ELECTRICITY": "Electricity",
-    "KEROSENE": "Kerosene/Jet",
-    "JET": "Kerosene/Jet",
-    "IMPORTS": "Imports",
-    "AUTOGEN-CHEMICAL": "AutoGen-Chemical",
-    "HYBRID": "Hybrid",
+    "IMPORTS": "Imports", "EIMPORTS": "Imports",
+    "AUTOGEN-CHEMICAL": "AutoGen-Chemical", "HYBRID": "Hybrid",
 
-    # E-prefixed tech labels from legends
-    "ECOAL": "Coal",
-    "EOIL": "Oil",
-    "ENUCLEAR": "Nuclear",
-    "EHYDRO": "Hydro",
-    "EWIND": "Wind",
-    "EPV": "Solar PV",
-    "ECSP": "Solar CSP",
-    "EBIOMASS": "Biomass",
-    "EBIOETHANOL": "Bioethanol",
-    "EGAS": "Natural Gas",
-    "EDIESEL": "Diesel",
-    "EGASOLINE": "Gasoline",
-    "EKEROSENE": "Kerosene/Jet",
+    # E-prefixed legend labels
+    "ECOAL": "Coal", "ENUCLEAR": "Nuclear", "EHYDRO": "Hydro", "EWIND": "Wind",
+    "EPV": "Solar PV", "ECSP": "Solar CSP", "EBIOMASS": "Biomass",
+    "EBIOETHANOL": "Bioethanol", "EGAS": "Natural Gas", "EDIESEL": "Diesel",
+    "EGASOLINE": "Gasoline", "EKEROSENE": "Kerosene/Jet", "EOIL": "Oil",
     "EHYBRID": "Hybrid",
-    "EIMPORTS": "Imports",
 }
 
 SECTOR_ALIASES = {
-    "POWER": "Power",
-    "ELECTRICITY SUPPLY": "Power",
-    "RES": "Residential",
-    "COM": "Commercial",
-    "COMMERCE": "Commercial",
-    "SUPPLY": "Supply",
-    "TRN": "Transport",
-    "IPPU": "IPPU",
+    "POWER": "Power", "ELECTRICITY SUPPLY": "Power",
+    "RES": "Residential", "COM": "Commercial", "COMMERCE": "Commercial",
+    "SUPPLY": "Supply", "TRN": "Transport", "IPPU": "IPPU",
 }
 
 # Filled from dataframe for robust scenario→group/family mapping
@@ -179,7 +144,6 @@ def _rgb_to_hex(rgb: tuple[int, int, int]) -> str:
     return "#{:02X}{:02X}{:02X}".format(*rgb)
 
 def _adjust_brightness(hex_color: str, factor: float) -> str:
-    """factor > 1 → lighter, factor < 1 → darker."""
     r, g, b = _hex_to_rgb(hex_color)
     r = min(255, int(r * factor))
     g = min(255, int(g * factor))
@@ -200,38 +164,20 @@ def _norm(s: Optional[str]) -> str:
 
 def _norm_fuel(label: str) -> str:
     """
-    Normalise fuel/tech labels:
-      - case-insensitive
-      - ignore spaces / hyphens
-      - handle E-prefixed forms (ECoal → Coal, EPV → Solar PV, …)
+    Normalise tech labels (case-insensitive; ignores spaces/hyphens; supports E-prefix).
     """
     s = _norm(label)
     if not s:
         return s
-
     key = s.upper()
-    # direct alias first
     if key in FUEL_ALIASES:
         return FUEL_ALIASES[key]
-
-    # try compacted forms (strip spaces/hyphens)
     compact = key.replace(" ", "").replace("-", "")
     if compact in FUEL_ALIASES:
         return FUEL_ALIASES[compact]
-
-    # generic E-prefix handler: ECOAL → COAL, EPV → PV, etc.
     if compact.startswith("E"):
         base = compact[1:]
-        if base in FUEL_ALIASES:
-            return FUEL_ALIASES[base]
-        # common special cases if not already caught
-        if base == "PV":
-            return "Solar PV"
-        if base == "CSP":
-            return "Solar CSP"
-        # fallback: title-case the base (ECOAL → Coal)
-        return base.title()
-
+        return FUEL_ALIASES.get(base, base.title() if base else s)
     return s
 
 def _growth_code(s: str) -> Optional[str]:
@@ -242,7 +188,6 @@ def _growth_code(s: str) -> Optional[str]:
     return None
 
 def _group_from_name(s: str) -> str:
-    """Infer Scenario Group from scenario name, deliberately ignoring 'NDC'."""
     su = s.upper()
     if "CPP" in su: return "CPP"
     if "HIGH CARBON" in su: return "High Carbon"
@@ -251,7 +196,6 @@ def _group_from_name(s: str) -> str:
     return "BASE"
 
 def _family_from_name(s: str) -> str:
-    """Heuristic family parser for cases without explicit column."""
     su = s.upper()
     if "CPP1" in su: return "CPP1"
     if "CPP2" in su: return "CPP2"
@@ -296,13 +240,10 @@ def color_for(kind: str, name: str) -> str:
         return SCENARIO_FAMILY_COLORS[fam]
 
     if kind == "scenario":
-        # 1) explicit override wins
         if name in SCENARIO_COLORS:
             return SCENARIO_COLORS[name]
-        # 2) base hue from Scenario Group (from df map if available, else heuristic)
         grp = SCENARIO_TO_GROUP.get(name) or _group_from_name(name)
         base = SCENARIO_GROUP_COLORS.get(grp, DEFAULT_COLOR)
-        # 3) apply LG/RG/HG variant
         gc = _growth_code(name)
         if gc == "LG":  return _adjust_brightness(base, 1.25)
         if gc == "HG":  return _adjust_brightness(base, 0.80)
@@ -316,14 +257,13 @@ def color_sequence(kind: str, names: Iterable[str]) -> list[str]:
 # ──────────────── Data-driven palette extension from dataframe ────────────────
 def extend_palettes_from_df(df) -> None:
     """
-    Scan a dataframe and ensure colors exist for all seen labels.
-    Columns (if present) used:
-      - Fuels: 'Commodity_Name' or 'Commodity'
-      - Sectors: 'Sector'
-      - Scenario families: 'ScenarioFamily'
-      - Scenario groups: 'ScenarioGroup' or 'Scenario_Group'
-      - Scenarios: 'Scenario'
-    Also fills SCENARIO_TO_GROUP / SCENARIO_TO_FAMILY maps.
+    Ensure colors exist for all seen labels & fill scenario→group/family maps.
+    Looks for columns:
+      Fuels: 'Commodity_Name' or 'Commodity'
+      Sectors: 'Sector'
+      Scenario families: 'ScenarioFamily'
+      Scenario groups: 'ScenarioGroup' or 'Scenario_Group'
+      Scenarios: 'Scenario'
     """
     # Fuels
     for col in ("Commodity_Name", "Commodity"):
@@ -340,7 +280,7 @@ def extend_palettes_from_df(df) -> None:
         for n in names:
             _ = color_for("sector", n)
 
-    # Scenario families (distinct from groups)
+    # Scenario families
     fam_col = "ScenarioFamily" if "ScenarioFamily" in df.columns else None
     if fam_col:
         fams = sorted({str(x) for x in df[fam_col].dropna().astype(str).unique()})
@@ -350,7 +290,7 @@ def extend_palettes_from_df(df) -> None:
             for scen, fam in df[["Scenario", fam_col]].dropna().astype(str).values:
                 SCENARIO_TO_FAMILY.setdefault(scen, fam)
 
-    # Scenario groups (preferred base for scenario hues)
+    # Scenario groups
     grp_col = "ScenarioGroup" if "ScenarioGroup" in df.columns else ("Scenario_Group" if "Scenario_Group" in df.columns else None)
     if grp_col:
         grps = sorted({str(x) for x in df[grp_col].dropna().astype(str).unique()})
@@ -361,7 +301,7 @@ def extend_palettes_from_df(df) -> None:
             for scen, grp in df[["Scenario", grp_col]].dropna().astype(str).values:
                 SCENARIO_TO_GROUP.setdefault(scen, grp)
 
-    # Scenarios (ensure every scenario now resolves to a colour)
+    # Scenarios
     if "Scenario" in df.columns:
         for n in sorted({str(x) for x in df["Scenario"].dropna().astype(str).unique()}):
             _ = color_for("scenario", n)
@@ -385,26 +325,9 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         height=int(600 * scale),
         font=dict(family=FONT_FAMILY, size=base_font, color="black"),
         margin=dict(l=80, r=80, t=60, b=int(100 * scale)),
-        title=dict(
-            font=dict(family=FONT_FAMILY, size=title_font),
-            x=0.5, xanchor="center",
-            pad=dict(b=80)
-        ),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=-0.3,
-            xanchor="center",
-            x=0.5,
-            font=dict(size=legend_font, family=FONT_FAMILY),
-        ),
-        shapes=[
-            dict(
-                type="rect", xref="paper", yref="paper",
-                x0=0, x1=1, y0=-0.30, y1=0,
-                fillcolor="white", line=dict(color="lightgrey"), layer="below",
-            )
-        ]
+        title=dict(font=dict(family=FONT_FAMILY, size=title_font), x=0.5, xanchor="center", pad=dict(b=80)),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.30, xanchor="center", x=0.5, font=dict(size=legend_font, family=FONT_FAMILY)),
+        shapes=[dict(type="rect", xref="paper", yref="paper", x0=0, x1=1, y0=-0.30, y1=0, fillcolor="white", line=dict(color="lightgrey"), layer="below")]
     )
 
     fig.update_xaxes(
@@ -414,10 +337,7 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         title_font=dict(size=title_font, family=FONT_FAMILY),
         tickmode="linear", dtick=5,
         showline=True, mirror=True, linecolor="lightgrey", linewidth=1.2,
-        minor=dict(
-            ticks="outside", showgrid=True, gridcolor="whitesmoke",
-            ticklen=3, tick0=0, dtick=1
-        )
+        minor=dict(ticks="outside", showgrid=True, gridcolor="whitesmoke", ticklen=3, tick0=0, dtick=1)
     )
 
     fig.update_yaxes(
@@ -427,9 +347,6 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         title_font=dict(size=title_font, family=FONT_FAMILY),
         rangemode="tozero",
         showline=True, mirror=True, linecolor="lightgrey", linewidth=1.2,
-        minor=dict(
-            ticks="outside", showgrid=True, gridcolor="whitesmoke",
-            ticklen=3, tick0=0, dtick=25000
-        )
+        minor=dict(ticks="outside", showgrid=True, gridcolor="whitesmoke", ticklen=3, tick0=0, dtick=25000)
     )
     return fig

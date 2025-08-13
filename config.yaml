@@ -13,14 +13,14 @@ charts:
     - fig_shadedfamilies
     - fig_newPWR_colour2
     - fig_elecsentoutdemand_colour2
-    # - fig1
-    # - fig2
-    # - fig3
-    # - fig3_ndc_emissions_by_sector
-    # - fig3b_ndc_emissions_by_sector
-    # - fig4_2035_stacked_bar_by_scenarios
-    # - fig4_coal_capacity_line
-    # - fig5_base_reference_emissions
+    - fig1
+    - fig2
+    - fig3
+    - fig3_ndc_emissions_by_sector
+    - fig3b_ndc_emissions_by_sector
+    - fig4_2035_stacked_bar_by_scenarios
+    - fig4_coal_capacity_line
+    - fig5_base_reference_emissions
        # if you leave this out or set to [], we auto-run all
     
 
@@ -31,15 +31,15 @@ charts:
   - Scunda FT's products
   - fig3_ndc_emissions_by_sector
   - fig07_electricity_ghgs
-    - fig_shadedfamilies
-    - fig1
-    - fig2
-    - fig3
-    - fig3_ndc_emissions_by_sector
-    - fig3b_ndc_emissions_by_sector
-    - fig4_2035_stacked_bar_by_scenarios
-    - fig4_coal_capacity_line
-    - fig5_base_reference_emissions
+    # - fig_shadedfamilies
+    # - fig1
+    # - fig2
+    # - fig3
+    # - fig3_ndc_emissions_by_sector
+    # - fig3b_ndc_emissions_by_sector
+    # - fig4_2035_stacked_bar_by_scenarios
+    # - fig4_coal_capacity_line
+    # - fig5_base_reference_emissions
 
 output:
   formats:    # file formats to write
