@@ -15,7 +15,6 @@ charts:
     - fig3b_ndc_emissions_by_sector
     - fig4_2035_stacked_bar_by_scenarios
     - fig5_base_reference_emissions
-    - fig07_electricity_ghgs
     - fig_shadedfamilies
 
   exclude:
@@ -24,7 +23,7 @@ charts:
   - CO2 based on national inventory
   - Scunda FT's products
   - fig3_ndc_emissions_by_sector
-    
+  - fig07_electricity_ghgs
 
 output:
   formats:    # file formats to write
