@@ -11,6 +11,8 @@ charts:
     - fig_ElecSentOutDemand
     - fig_newPWR
     - fig_shadedfamilies
+    - fig_newPWR_colour2
+    - fig_elecsentoutdemand_colour2
     # - fig1
     # - fig2
     # - fig3

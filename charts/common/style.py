@@ -32,6 +32,7 @@ FUEL_COLORS = {
     "LPG":              "#7A4F9A",  # violet
     "Natural Gas":      "#1E90FF",  # blue
     "Syngas":           "#4F81BD",  # steel blue
+    "Nuclear":          "#A3C644",  # yellow-green
 
     # Low-carbon / renewables
     "Electricity":      "#7E57C2",  # amethyst
@@ -98,11 +99,7 @@ SCENARIO_FAMILY_COLORS = {
 }
 
 # Optional explicit overrides for particular scenario names (usually keep empty)
-SCENARIO_COLORS: dict[str, str] = {
-    # "NDC_BASE-LG": "#8AC41F",
-    # "NDC_BASE-RG": "#1E1BD3",
-    # "NDC_BASE-HG": "#D46820",
-}
+SCENARIO_COLORS: dict[str, str] = {}
 
 DEFAULT_COLOR = "#9E9E9E"
 
@@ -395,13 +392,12 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         ),
         legend=dict(
             orientation="h",
-            yanchor="top",
-            y=-0.15,
+            yanchor="bottom",
+            y=-0.3,
             xanchor="center",
             x=0.5,
             font=dict(size=legend_font, family=FONT_FAMILY),
         ),
-        # subtle footer band (room for caption/logo if re-enabled later)
         shapes=[
             dict(
                 type="rect", xref="paper", yref="paper",
