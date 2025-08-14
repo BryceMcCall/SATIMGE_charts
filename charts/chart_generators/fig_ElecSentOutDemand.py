@@ -74,10 +74,11 @@ def _compute_losses(df: pd.DataFrame, subsectors, years=(2024, 2035)) -> pd.Data
         (df["Scenario"] == "NDC_BASE-RG")
         & (df["Sector"] == "Power")
         & (df["Year"].between(years[0], years[1]))
-        & (df["Commodity"] == "ELCC")
+        & (df["Short Description"] == "Electricity")
         & (df["Subsector"].isin(subsectors))
         & (df["Indicator"].isin(["FlowIn", "FlowOut"]))
     )
+
     d = df.loc[filt, ["Year", "Indicator", "SATIMGE"]].copy()
     agg = d.groupby(["Year", "Indicator"], as_index=False)["SATIMGE"].sum()
     wide = agg.pivot(index="Year", columns="Indicator", values="SATIMGE").fillna(0.0)
@@ -124,13 +125,14 @@ def generate_ElecTWh_chart(df: pd.DataFrame, output_dir: str) -> go.Figure:
 
     grid_losses = _compute_losses(df, subsectors=["ETrans", "EDist"])
     stor_losses = _compute_losses(df, subsectors=["EBattery", "EPumpStorage"])
-    add_grid = grid_losses.assign(Sector="Losses-Grid").rename(columns={"LossTWh": "SATIMGE"})
-    add_stor = stor_losses.assign(Sector="Losses-Storage").rename(columns={"LossTWh": "SATIMGE"})
+    add_grid = grid_losses.assign(Sector="Grid Losses").rename(columns={"LossTWh": "SATIMGE"})
+    add_stor = stor_losses.assign(Sector="Storage Losses").rename(columns={"LossTWh": "SATIMGE"})
     df_use_plus = pd.concat([df_use, add_grid, add_stor], ignore_index=True)
+    
 
-    right_categories = use_keep + ["Losses-Grid", "Losses-Storage"]
+    right_categories = use_keep + ["Grid Losses", "Storage Losses"]
     right_color_map = {s: color_for("sector", s) for s in use_keep}
-    right_color_map.update({"Losses-Grid": "#8A8A8A", "Losses-Storage": "#C9C9C9"})
+    right_color_map.update({"Grid Losses": "red", "Storage Losses": "blue"})
 
     fig_right = px.bar(
         df_use_plus, x="Year", y="SATIMGE", color="Sector",
