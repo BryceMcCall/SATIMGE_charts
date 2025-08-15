@@ -117,8 +117,16 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
 
     fig4 = apply_common_layout(fig4)
     fig4.update_layout(
-        title="Fig 4: Energy Emissions by Scenario & Sector (2035)",
+        title="",
         xaxis_title="",
+        yaxis_title="CO₂e emissions in 2035 (MtCO₂e)",
+        xaxis=dict(
+        tickangle=45,  # vertical labels
+        title=dict(
+            text="Scenario",
+            standoff=10
+        )
+    )
         barmode="stack",
         legend=dict(
             orientation="v",

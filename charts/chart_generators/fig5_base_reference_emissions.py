@@ -51,9 +51,9 @@ def generate_fig5_base_reference_emissions(df: pd.DataFrame, output_dir: str) ->
 
     fig = apply_common_layout(fig)
     fig.update_layout(
-        title="Fig 5: Total Emissions for BASE Scenarios (Reference Economic Growth)",
+        title="",
         xaxis_title="Year",
-        yaxis_title="CO₂eq (kt)"
+        yaxis_title="CO₂eq (Mt)"
     )
 
     print("saving figure 5")
