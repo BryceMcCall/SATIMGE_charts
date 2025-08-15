@@ -330,15 +330,10 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         title=dict(font=dict(family=FONT_FAMILY, size=title_font),
                    x=0.5, xanchor="center", pad=dict(b=80)),
         legend=dict(orientation="h",
-                    yanchor="bottom", y=1.02,
+                    yanchor="bottom", y=-0.32,
                     xanchor="center", x=0.5,
                     font=dict(size=legend_font, family=FONT_FAMILY)),
-        # keep footer bar if you still want a light area below plot
-        shapes=[dict(type="rect", xref="paper", yref="paper",
-                     x0=0, x1=1, y0=-0.30, y1=0,
-                     fillcolor="white",
-                     line=dict(color="lightgrey"),
-                     layer="below")]
+
     )
 
     # X axis — show all category labels (no dtick forcing)
