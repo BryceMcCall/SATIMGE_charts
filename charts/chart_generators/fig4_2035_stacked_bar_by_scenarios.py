@@ -121,21 +121,17 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
         xaxis_title="",
         yaxis_title="CO₂e emissions in 2035 (MtCO₂e)",
         xaxis=dict(
-        tickangle=45,  # vertical labels
-        title=dict(
-            text="Scenario",
-            standoff=10
-        )
-    )
+            tickangle=90,
+            title=dict(text="Scenario", standoff=10),
+        ),
         barmode="stack",
         legend=dict(
-            orientation="v",
-            yanchor="top",
-            y=1,
-            xanchor="left",
-            x=1.02
+            orientation="h",
+            yanchor="top", y=-0.20,
+            xanchor="center", x=0.5
         )
-    )
+)
+
 
     print("saving figure 4")
     save_figures(fig4, output_dir, name="fig4_2035_stacked_bar_by_scenarios")
