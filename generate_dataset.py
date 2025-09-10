@@ -5,10 +5,12 @@ import pandas as pd
 import numpy as np
 from utils.mappings import (
     map_scenario_family,
+    map_scenario_key,
     map_sector_group,
     extract_carbon_budget,
     map_economic_growth,
     apply_mapping_and_clean
+
 )
 
 # 1) Point to the actual CSV (with underscore)
@@ -19,7 +21,7 @@ OUT_PATH = "data/processed/processed_dataset.csv"
 
 # 3) Your local Sets & Maps file in OneDrive
 #path_setsandmaps = r"C:\Models\SATIMGE_Veda\SetsAndMaps\SetsAndMaps.xlsm"
-path_setsandmaps = r"C:\Models\SATIMGE_charts\SetsAndMaps.xlsm"
+path_setsandmaps = r"C:\SATIMGE_charts\SetsAndMaps.xlsm"
 print('reading in raw data file')
 df = pd.read_csv(RAW_PATH)
 
@@ -50,6 +52,7 @@ proc_df['CO2eq'] = proc_df.apply(
 # --- Add scenario metadata ---
 print('applying custom maps and groupings')
 proc_df['ScenarioFamily'] = proc_df['Scenario'].apply(map_scenario_family)
+proc_df['ScenarioKey'] = proc_df['Scenario'].apply(map_scenario_key)
 proc_df['ScenarioGroup'] = proc_df['ScenarioFamily'].apply(
     lambda s: 'CPP' if s.startswith('CPP') else s
 )

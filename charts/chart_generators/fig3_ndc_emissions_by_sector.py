@@ -55,9 +55,11 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
 
     # Order categories by absolute change (smallest → largest)
     order_df = data[data["Year"] == 2035][["SectorGroup", "SectorLabel"]].drop_duplicates()
-    order_df["abs_diff"] = order_df["SectorLabel"].map(pivot["diff"].abs().to_dict())
-    ordered_labels = order_df.sort_values("abs_diff")["SectorLabel"].tolist()
-
+    order_df["diff"] = order_df["SectorLabel"].map(pivot["diff"].to_dict())
+    ordered_labels = order_df.sort_values("diff")["SectorLabel"].tolist()
+    
+    print(ordered_labels)
+    
     # Build figure
     fig = go.Figure()
     p24 = data[data["Year"] == 2024]
@@ -93,7 +95,7 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
 
     # X axis: horizontal labels, fixed category order
     fig.update_xaxes(
-        title=dict(text="Sector Group (Δ 2035–2024)", font=dict(size=16)),  
+        title=dict(text="", font=dict(size=16)),  
         type="category",
         categoryorder="array",
         categoryarray=ordered_labels,

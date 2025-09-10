@@ -24,23 +24,18 @@ else:
     dev_mode = False
 
 
-def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
-    print("generating figure 2")
+def generate_fig_shadedscenarios(df: pd.DataFrame, output_dir: str) -> None:
+    print("generating shaded figure of emissions from all scenarios")
 
+    years = list(range(2024, 2036))
+    
     scenario_year_emissions = (
-        df.groupby(['Scenario', 'ScenarioFamily', 'Year'])['CO2eq']
+        df[df['Year'].isin(years)].groupby(['Scenario', 'ScenarioGroup', 'Year'])['CO2eq']
         .sum()
         .reset_index(name='CO2eq_Total')
     )
 
-    scenario_year_emissions = scenario_year_emissions[
-        ~scenario_year_emissions['ScenarioFamily'].isin(['Low Carbon'])
-    ]
-
-    scenario_year_emissions['ScenarioGroup'] = (
-        scenario_year_emissions['ScenarioFamily']
-        .apply(lambda x: 'CPP' if x.startswith('CPP') else x)
-    )
+    scenario_year_emissions['CO2eq_Total'] = scenario_year_emissions['CO2eq_Total'] / 1e3  # Convert to Mt
 
     data = (
         scenario_year_emissions
@@ -49,6 +44,8 @@ def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
         .reset_index()
         .rename(columns={'min': 'Emissions_min', 'max': 'Emissions_max', 'mean': 'Emissions_mean'})
     )
+
+    
 
     group_colors = {
         'CPP': 'rgba(255, 255, 0, 0.2)',
@@ -87,22 +84,27 @@ def generate_fig2_shaded(df: pd.DataFrame, output_dir: str) -> None:
     fig = apply_common_layout(fig)
     fig.update_layout(
         title="",
-        xaxis_title="Year",
-        yaxis_title="CO₂ Emissions (kt)"
+        xaxis=dict(
+            title="",
+            range=[2024, 2035],  # Ensures axis starts at 2024 and ends at 2035
+            tickmode="array",
+            tickvals=list(range(2024, 2036)),  # Show all years including 2035
+        ),
+        yaxis_title="Mt CO₂eq"
     )
 
-    print("saving figure 2")
-    save_figures(fig, output_dir, name="fig2_shaded")
+    print("saving shaded emissions chart")
+    save_figures(fig, output_dir, name="fig_shadedscenarios_emissions")
 
     if not dev_mode:
-        data.to_csv(Path(output_dir) / "fig2_data.csv", index=False)
+        data.to_csv(Path(output_dir) / "fig_data.csv", index=False)
 
 
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[2]
     df = pd.read_parquet(project_root / "data/processed/processed_dataset.parquet")
-    out = project_root / "outputs/charts_and_data/fig2_shaded"
+    out = project_root / "outputs/charts_and_data/fig_shadedscenarios_emissions"
     out.mkdir(parents=True, exist_ok=True)
-    generate_fig2_shaded(df, str(out))
+    generate_fig_shadedscenarios(df, str(out))
 
 

@@ -1,4 +1,4 @@
-# Emissions line chart for BASE only
+# Emissions line chart for WEM for the three growth scenarios
 # 
 # 
 
@@ -25,38 +25,44 @@ else:
     dev_mode = False
 
 
-def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
-    print("generating figure 1")
+def generate_fig_line_emissions_WEM(df: pd.DataFrame, output_dir: str) -> None:
+    print("generating line emissions chart for three WEM scenarios")
 
     selected_scenarios = ["NDC_BASE-LG", "NDC_BASE-RG", "NDC_BASE-HG"]
+    #select_growth_scenarios =["Reference", "Low", "High"]
     year_select = range(2024,2036,1)
+
     # Define custom color mapping
-    scenario_colors = {
-        "NDC_BASE-LG": "#8ac41f",  # fixed hex color
-        "NDC_BASE-RG": "#1E1BD3",  
-        "NDC_BASE-HG": "#d46820",  
+    growth_colours = {
+        "Low": "#8ac41f",  # fixed hex color
+        "Reference": "#1E1BD3",  
+        "High": "#d46820",  
     }
 
 
-    df = df[(df["Scenario"].isin(selected_scenarios))&(df["Year"].isin(year_select))]
-    
+    dfx = df[(df["Scenario"].isin(selected_scenarios))&
+            (df["Year"].isin(year_select))]
 
     data = (
-        df.groupby(["Scenario", "Year"])["CO2eq"]
+        dfx.groupby(["EconomicGrowth", "Year"])["CO2eq"]
         .sum()
         .reset_index()
-    )
+        )
+
     data['CO2eq'] = data['CO2eq']*0.001 #convert to Mt
 
+    # Define the desired legend order
+    legend_order = ["Low","Reference","High"]
+
     fig = go.Figure()
-    for scenario in data["Scenario"].unique():
-        subset = data[data["Scenario"] == scenario]
+    for scenario in legend_order:
+        subset = data[data["EconomicGrowth"] == scenario]
         fig.add_trace(go.Scatter(
             x=subset["Year"],
             y=subset["CO2eq"],
             mode="lines",
             name = scenario,
-            line=dict(width=2, color= scenario_colors.get(scenario)),
+            line=dict(width=2, color= growth_colours.get(scenario)),
             showlegend=True
         ))
 
@@ -72,16 +78,17 @@ def generate_fig1_total_emissions(df: pd.DataFrame, output_dir: str) -> None:
             dtick=1),
 
         legend=dict(
+            title = "Economic Growth",
             orientation="h",
-            #yanchor="top",
-            xanchor="center",
-            y = -0.15  #move it to underneath
+            yanchor="top",
+            #xanchor="left",
+            #x = 0.4,
+            #y = -0.15  #move it to underneath
         )
-        
     )
 
-    print("saving figure 1")
-    save_figures(fig, output_dir, name="fig1_total_emissions")
+    print("saving WEM line emissions chart for three growth scenarios")
+    save_figures(fig, output_dir, name="fig_line_emissions_WEM")
 
     if not dev_mode:
         data.to_csv(Path(output_dir) / "data.csv", index=False)
@@ -110,6 +117,6 @@ if __name__ == "__main__":
         year_select = list(range(2024, 2036))
         df = df[(df["Scenario"].isin(selected_scenarios)) & (df["Year"].isin(year_select))]
 
-    out = project_root / "outputs/charts_and_data/fig1_total_emissions"
+    out = project_root / "outputs/charts_and_data/generate_fig_line_emissions_WEM"
     out.mkdir(parents=True, exist_ok=True)
-    generate_fig1_total_emissions(df, str(out))
+    generate_fig_line_emissions_WEM(df, str(out))

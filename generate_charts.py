@@ -11,6 +11,7 @@ import pandas as pd
 import yaml
 
 # 1) Paths
+print('setting up paths')
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 CONFIG_PATH  = PROJECT_ROOT / "config.yaml"
@@ -25,32 +26,39 @@ parser.add_argument("--config", "-c", type=Path, default=CONFIG_PATH, help="Path
 args = parser.parse_args()
 
 # 3) Load config (charts only from config)
+print('load config file')
 with open(args.config, "r", encoding="utf-8") as fh:
     tools_cfg = yaml.safe_load(fh)
 charts_to_run = set(tools_cfg["charts"]["include"])
 DEV_MODE = tools_cfg.get("dev_mode", False)  # still read, in case generators use it
 
 # 4) Prepare folders
+print('prepare output folders')
 for d in (OUT_BASE, GALLERY_BASE):
     d.mkdir(parents=True, exist_ok=True)
 
 # 5) Load full dataset once
+print('load processed dataset')
 try:
     import pyarrow.parquet as pq
     df = pq.read_table(DATA_PATH).to_pandas()
 except Exception:
     df = pd.read_parquet(DATA_PATH)
+print('done loading dataset')
 
 # 6) Import style and extend palettes
+print('importing sytles and palettes')
 from charts.common.style import extend_palettes_from_df
 extend_palettes_from_df(df)
 
 # 7) Auto-discover modules under charts/chart_generators
+print('discovering available chart modules')
 import charts.chart_generators as cg_pkg
 available = {name for _, name, _ in pkgutil.iter_modules(cg_pkg.__path__)}
 missing = charts_to_run - available
 if missing:
     print(f"⚠ Listed in config but not found: {sorted(missing)}")
+
 
 def _pick_generator(module, module_name: str):
     """
@@ -114,6 +122,7 @@ def _pick_generator(module, module_name: str):
     return None, f"ambiguous generators {names}; expected {exact}()"
 
 # 8) Run selected modules
+print('running selected chart modules')
 for module_name in sorted(charts_to_run & available):
     try:
         module = importlib.import_module(f"charts.chart_generators.{module_name}")

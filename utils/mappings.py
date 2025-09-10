@@ -24,6 +24,34 @@ def apply_mapping_and_clean(df, mapPRC_df, mapCOM_df):
 
     return merged_df
 
+def map_scenario_key(scenario):
+    scenario = scenario.strip()
+
+    # Handle CPP4 cases
+    if scenario == "CPP4":
+        return "CPP"
+    elif "CPP4-" in scenario:   # dash after CPP4
+        return "CPP"
+    elif "CPP4" in scenario:    # any other CPP4 form
+        return "CPP4 Variant"
+
+    # Other mappings
+    scenario_mapping = [
+        ('CPP1', 'CPP-IRP'),
+        ('CPP2', 'CPP-IRPLight'),
+        ('CPP3', 'CPP-SAREM'),
+        ('HCARB', 'High Carbon'),
+        ('LCARB', 'Low Carbon'),
+        ('BASE', 'WEM')
+    ]
+
+    for key, value in scenario_mapping:
+        if key in scenario:
+            return value
+    return 'Other'
+
+
+
 def map_scenario_family(scenario):
     # Function to assign ScenarioFamily based on rules
     scenario_mapping = [

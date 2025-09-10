@@ -8,9 +8,15 @@ dev_mode: false
 
 charts:
   include:
+    
+    - fig_shadedfamilies #STATUS: in porogress - colours need work, hard to tell what's what. 
+    #- fig_line_emissions_WEM #STATUS: this is working but legend title needs to be made smaller and better positioned
+
+
+
     #- fig_ElecSentOutDemand
-    - fig3_ndc_emissions_by_sector
-   # - fig3
+    #- fig3_ndc_emissions_by_sector
+    # - fig3
     # - fig_newPWR
     # - fig_shadedfamilies
     # - fig_newPWR_colour2
