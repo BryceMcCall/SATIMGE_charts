@@ -40,6 +40,7 @@ def map_scenario_key(scenario):
         ('CPP1', 'CPP-IRP'),
         ('CPP2', 'CPP-IRPLight'),
         ('CPP3', 'CPP-SAREM'),
+        ('CPP4', 'CPPS'),
         ('HCARB', 'High Carbon'),
         ('LCARB', 'Low Carbon'),
         ('BASE', 'WEM')
@@ -62,7 +63,7 @@ def map_scenario_family(scenario):
     ('CPP3', 'CPP3'),
     ('HCARB', 'High Carbon'),
     ('LCARB', 'Low Carbon'),
-    ('BASE', 'BASE')
+    ('BASE', 'WEM')
     ]
 
 
