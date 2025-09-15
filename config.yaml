@@ -9,9 +9,10 @@ dev_mode: false
 charts:
   include:
     
-    - fig_shadedfamilies #STATUS: in porogress - colours need work, hard to tell what's what. 
-    #- fig_line_emissions_WEM #STATUS: this is working but legend title needs to be made smaller and better positioned
 
+    #- fig_shadedfamilies #STATUS: 95% DONE. Colours could use a tweak for readability
+    #- fig_line_emissions_WEM #STATUS: this is working but legend title needs to be made smaller and better positioned
+    - fig_line_emissions_all # STATUS: 
 
 
     #- fig_ElecSentOutDemand
