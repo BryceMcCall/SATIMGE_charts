@@ -1,4 +1,4 @@
-# charts/chart_generators/fig5_2_1_power_capacity.py
+# charts/chart_generators/fig5_2_1_cumulative_new_capacity.py
 
 import sys
 from pathlib import Path
@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.express as px
 from charts.common.style import apply_common_layout, color_for
 from charts.common.save import save_figures
-from utils.mappings import map_scenario_key   # ← import mapping
+from utils.mappings import map_scenario_key
 import yaml
 import shutil
 
@@ -28,20 +28,24 @@ else:
     dev_mode = False
 
 
-def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
+def generate_fig5_2_1_cumulative(df: pd.DataFrame, output_dir: str) -> None:
     """
-    Generate stacked bar chart for total power sector capacity by scenario.
-    Matches Tableau chart 5.2.1-1.
+    Generate stacked bar chart for cumulative new capacity additions
+    in 2025, 2030, and 2035.
     """
-    print("generating figure 5.2.1-1: power sector capacity")
+    print("generating figure 5.2.1-2: cumulative new capacity")
     print(f"🛠️ dev_mode = {dev_mode}")
     print(f"📂 Output directory: {output_dir}")
 
     # Ensure numeric
     df["Year"] = df["Year"].astype(int)
-    df["Capacity (GW)"] = pd.to_numeric(df["Capacity (GW)"], errors="coerce")
+    df["NewCapacity(GW)"] = pd.to_numeric(df["NewCapacity(GW)"], errors="coerce").fillna(0)
 
-    # Filter only reporting years
+    # Compute cumulative sums by Scenario + Subsector
+    df = df.sort_values(["Scenario", "Subsector", "Year"])
+    df["Cumulative"] = df.groupby(["Scenario", "Subsector"])["NewCapacity(GW)"].cumsum()
+
+    # Only keep reporting years
     df = df[df["Year"].isin([2025, 2030, 2035])]
 
     # Harmonize subsector labels
@@ -71,15 +75,15 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
     # Plot
     fig = px.bar(
         df,
-        x="ScenarioLabel",   # ← use mapped scenario labels
-        y="Capacity (GW)",
+        x="ScenarioLabel",
+        y="Cumulative",
         color="Subsector",
         facet_col="Year",
         facet_col_wrap=3,
         barmode="stack",
         category_orders={"Subsector": stack_order},
         color_discrete_map=color_map,
-        labels={"Capacity (GW)": "Capacity (GW)", "ScenarioLabel": ""},
+        labels={"Cumulative": "GW", "ScenarioLabel": ""},
     )
 
     # Apply style
@@ -97,9 +101,8 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
         font=dict(size=14),
         margin=dict(l=40, r=180, t=40, b=120),
         yaxis=dict(
-            range=[0, 120],
             dtick=10,
-            title=dict(text="Capacity (GW)", font=dict(size=21))
+            title=dict(text="Cumulative New Capacity (GW)", font=dict(size=21))
         )
     )
 
@@ -117,24 +120,24 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
         print("👩‍💻 dev_mode ON — showing chart only (no export)")
     else:
         print("💾 saving figure and data")
-        save_figures(fig, output_dir, name="fig5_2_1_power_capacity")
+        save_figures(fig, output_dir, name="fig5_2_1_cumulative_new_capacity")
 
         # Copy main image into gallery
         gallery_dir = project_root / "outputs" / "gallery"
         gallery_dir.mkdir(parents=True, exist_ok=True)
-        src_img = Path(output_dir) / "fig5_2_1_power_capacity.png"
+        src_img = Path(output_dir) / "fig5_2_1_cumulative_new_capacity.png"
         if src_img.exists():
             shutil.copy(src_img, gallery_dir / src_img.name)
 
         # Export CSV
         Path(output_dir).mkdir(parents=True, exist_ok=True)
-        df.to_csv(Path(output_dir) / "fig5_2_1_power_capacity_data.csv", index=False)
+        df.to_csv(Path(output_dir) / "fig5_2_1_cumulative_new_capacity_data.csv", index=False)
 
 
 if __name__ == "__main__":
-    data_path = project_root / "data" / "processed" / "5.2.1_1_Pwr_total_cap_scenfam_pg84.csv"
+    data_path = project_root / "data" / "processed" / "5.2.1_2_pwr_new_capacity.csv"
     df = pd.read_csv(data_path)
 
-    out = project_root / "outputs" / "charts_and_data" / "fig5_2_1_power_capacity"
+    out = project_root / "outputs" / "charts_and_data" / "fig5_2_1_cumulative_new_capacity"
     out.mkdir(parents=True, exist_ok=True)
-    generate_fig5_2_1(df, str(out))
+    generate_fig5_2_1_cumulative(df, str(out))
