@@ -48,15 +48,15 @@ def generate_fig_shadedscenarios(df: pd.DataFrame, output_dir: str) -> None:
     
 
     group_colors = {
-        'CPP': 'rgba(255, 255, 0, 0.2)',
-        'BASE': 'rgba(0, 0, 255, 0.2)',
+        'CPP': 'rgba(255, 210, 0, 0.3)',
+        'WEM': 'rgba(0, 0, 255, 0.3)',
         'High Carbon': 'rgba(255, 0, 0, 0.2)',
         'Low Carbon': 'rgba(0, 128, 0, 0.2)',
         'Other': 'rgba(128, 128, 128, 0.2)'
     }
     line_colors = {
         'CPP': 'Orange',
-        'BASE': 'Blue',
+        'WEM': 'Blue',
         'High Carbon': 'red',
         'Low Carbon': 'green',
         'Other': 'gray'
@@ -74,12 +74,55 @@ def generate_fig_shadedscenarios(df: pd.DataFrame, output_dir: str) -> None:
             name=f'{group} Range',
             showlegend=True
         ))
-        fig.add_trace(go.Scatter(
-            x=d['Year'],
-            y=d['Emissions_mean'],
-            line=dict(color=line_colors.get(group, 'gray'), width=2),
-            name=f'{group} Mean'
-        ))
+
+        #get the reference scenario result for each ScenarioGroup
+        if group == 'CPP':
+            # since CPP is a few, use the average
+            
+            fig.add_trace(go.Scatter(
+                x=d['Year'],
+                y=d['Emissions_mean'],
+                line=dict(color=line_colors.get(group, 'gray'), width=2),
+                name=f'{group} Mean'
+            ))
+        elif group == 'WEM':
+            print("WEM group")
+            print(group)
+
+            d_scenario = scenario_year_emissions[
+                scenario_year_emissions['Scenario'] == "NDC_BASE-RG"]
+            print(d_scenario)
+
+
+            fig.add_trace(go.Scatter(
+                x=d_scenario['Year'],
+                y=d_scenario['CO2eq_Total'],
+                line=dict(color=line_colors.get(group, 'gray'), width=2),
+                name=f'{group} Reference'
+            )
+            )
+        elif group == 'High Carbon':
+            d_scenario = scenario_year_emissions[
+                scenario_year_emissions['Scenario'] == "NDC_HCARB-RG"]
+            
+            fig.add_trace(go.Scatter(
+                x=d_scenario['Year'],
+                y=d_scenario['CO2eq_Total'],
+                line=dict(color=line_colors.get(group, 'gray'), width=2),
+                name=f'{group} Reference'
+            )
+            )
+        elif group == 'Low Carbon':
+            d_scenario = scenario_year_emissions[
+                scenario_year_emissions['Scenario'] == "NDC_LCARB-RG"]
+            scen_name = group
+            fig.add_trace(go.Scatter(
+                x=d_scenario['Year'],
+                y=d_scenario['CO2eq_Total'],
+                line=dict(color=line_colors.get(group, 'gray'), width=2),
+                name=f'{group} Reference'
+            )
+            )
 
     fig = apply_common_layout(fig)
     fig.update_layout(

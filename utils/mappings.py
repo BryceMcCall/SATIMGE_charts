@@ -29,17 +29,18 @@ def map_scenario_key(scenario):
 
     # Handle CPP4 cases
     if scenario == "CPP4":
-        return "CPP"
+        return "CPPS"
     elif "CPP4-" in scenario:   # dash after CPP4
-        return "CPP"
-    elif "CPP4" in scenario:    # any other CPP4 form
-        return "CPP4 Variant"
+        return "CPPS Variant"
+    #elif "CPP4" in scenario:    # any other CPP4 form
+    #    return "CPP4 Variant"
 
     # Other mappings
     scenario_mapping = [
         ('CPP1', 'CPP-IRP'),
         ('CPP2', 'CPP-IRPLight'),
         ('CPP3', 'CPP-SAREM'),
+        ('CPP4', 'CPPS'),
         ('HCARB', 'High Carbon'),
         ('LCARB', 'Low Carbon'),
         ('BASE', 'WEM')
@@ -62,7 +63,7 @@ def map_scenario_family(scenario):
     ('CPP3', 'CPP3'),
     ('HCARB', 'High Carbon'),
     ('LCARB', 'Low Carbon'),
-    ('BASE', 'BASE')
+    ('BASE', 'WEM')
     ]
 
 
