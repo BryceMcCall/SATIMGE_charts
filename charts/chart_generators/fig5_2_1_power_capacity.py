@@ -1,0 +1,126 @@
+# charts/chart_generators/fig5_2_1_power_capacity.py
+
+import sys
+from pathlib import Path
+
+if __name__ == "__main__" and __package__ is None:
+    project_root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(project_root))
+
+import pandas as pd
+import plotly.express as px
+from charts.common.style import apply_common_layout, color_for
+from charts.common.save import save_figures
+import yaml
+
+# ────────────────────────── Config ────────────────────────────────
+project_root = Path(__file__).resolve().parents[2]
+config_path = project_root / "config.yaml"
+
+if config_path.exists():
+    with open(config_path) as f:
+        _CFG = yaml.safe_load(f)
+    dev_mode = _CFG.get("dev_mode", False)
+else:
+    print("⚠️ config.yaml not found — defaulting dev_mode = False")
+    dev_mode = False
+
+
+def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
+    """
+    Generate stacked bar chart for total power sector capacity by scenario.
+    Matches Tableau chart 5.2.1-1.
+    """
+    print("generating figure 5.2.1-1: power sector capacity")
+    print(f"🛠️ dev_mode = {dev_mode}")
+    print(f"📂 Output directory: {output_dir}")
+
+    # Ensure numeric
+    df["Year"] = df["Year"].astype(int)
+    df["Capacity (GW)"] = pd.to_numeric(df["Capacity (GW)"], errors="coerce")
+
+    # Filter only reporting years
+    df = df[df["Year"].isin([2025, 2030, 2035])]
+
+    # Harmonize labels
+    df["Subsector"] = df["Subsector"].replace({
+        "ECoal": "Coal", "EOil": "Oil", "EGas": "Gas", "ENuclear": "Nuclear",
+        "EHydro": "Hydro", "EBiomass": "Biomass", "EWind": "Wind",
+        "EPV": "Solar PV", "ECSP": "CSP", "EHybrid": "Hybrid",
+        "EBattery": "Battery Storage", "EPumpStorage": "Pumped Storage",
+        "Imports": "Imports"
+    })
+
+    # Build color map
+    subsectors = df["Subsector"].unique()
+    color_map = {s: color_for("fuel", s) for s in subsectors}
+
+    # Define stack order (Coal at bottom)
+    stack_order = [
+        "Coal", "Oil", "Gas", "Nuclear", "Hydro", "Biomass",
+        "Wind", "Solar PV", "CSP", "Hybrid",
+        "Battery Storage", "Pumped Storage", "Imports"
+    ]
+    stack_order = [s for s in stack_order if s in subsectors]
+
+    # Plot
+    fig = px.bar(
+        df,
+        x="Scenario",
+        y="Capacity (GW)",
+        color="Subsector",
+        facet_col="Year",
+        facet_col_wrap=3,
+        barmode="stack",
+        category_orders={"Subsector": stack_order},
+        color_discrete_map=color_map,
+        labels={"Capacity (GW)": "Capacity (GW)", "Scenario": ""},
+    )
+
+    # Apply style
+    fig = apply_common_layout(fig)
+    fig.update_layout(
+        title="",
+        legend_title_text="",  # no "Subsector"
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=1,
+            xanchor="left",
+            x=1.02
+        ),
+        font=dict(size=14),
+        margin=dict(l=40, r=220, t=40, b=80),  # add right margin for legend
+        yaxis=dict(
+            range=[0, 120],
+            dtick=10,
+            title=dict(text="Capacity (GW)", font=dict(size=22))  # match year label size
+        )
+    )
+
+    # Clean facet titles ("Year=2025" → "2025") and enlarge font
+    fig.for_each_annotation(lambda a: a.update(
+        text=a.text.split("=")[-1],
+        font=dict(size=22)
+    ))
+
+    # Rotate x-axis labels 90 degrees
+    fig.update_xaxes(tickangle=90)
+
+    # Save
+    if dev_mode:
+        print("👩‍💻 dev_mode ON — showing chart only (no export)")
+    else:
+        print("💾 saving figure and data")
+        save_figures(fig, output_dir, name="fig5_2_1_power_capacity")
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        df.to_csv(Path(output_dir) / "fig5_2_1_power_capacity_data.csv", index=False)
+
+
+if __name__ == "__main__":
+    data_path = project_root / "data" / "processed" / "5.2.1_1_Pwr_total_cap_scenfam_pg84.csv"
+    df = pd.read_csv(data_path)
+
+    out = project_root / "outputs" / "charts_and_data" / "fig5_2_1_power_capacity"
+    out.mkdir(parents=True, exist_ok=True)
+    generate_fig5_2_1(df, str(out))
