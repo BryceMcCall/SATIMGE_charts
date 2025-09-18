@@ -6,7 +6,6 @@ outputs/
 data/raw/*
 
 
-# ignore all files in data/processed/…
-data/processed/*
-# …except our placeholder, so the folder is kept
-!data/processed/.gitkeep
+# Ignore just the large processed datasets
+data/processed/processed_dataset.csv
+data/processed/processed_dataset.parquet
