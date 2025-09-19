@@ -84,6 +84,7 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
 
     # Apply style
     fig = apply_common_layout(fig)
+    fig.update_xaxes(tickangle=90)
     fig.update_layout(
         title="",
         legend_title_text="",
@@ -110,6 +111,7 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
     ))
 
     # Rotate x-axis labels
+ 
     fig.update_xaxes(tickangle=90)
 
     # Save

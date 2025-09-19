@@ -1,4 +1,4 @@
-# charts/chart_generators/fig5_2_1_cumulative_new_capacity.py
+# charts/chart_generators/fig5_2_1_irp_capacity.py
 
 import sys
 from pathlib import Path
@@ -28,25 +28,21 @@ else:
     dev_mode = False
 
 
-def generate_fig5_2_1_cumulative(df: pd.DataFrame, output_dir: str) -> None:
+def generate_fig5_2_1_irp_capacity(df: pd.DataFrame, output_dir: str) -> None:
     """
-    Generate stacked bar chart for cumulative new capacity additions
-    in 2025, 2030, and 2035.
+    Generate stacked bar chart for IRP comparison of installed capacity
+    in 2024, 2030, and 2035.
     """
-    print("generating figure 5.2.1-2: cumulative new capacity")
+    print("generating figure 5.2.1-4: IRP capacity comparison")
     print(f"🛠️ dev_mode = {dev_mode}")
     print(f"📂 Output directory: {output_dir}")
 
     # Ensure numeric
     df["Year"] = df["Year"].astype(int)
-    df["NewCapacity(GW)"] = pd.to_numeric(df["NewCapacity(GW)"], errors="coerce").fillna(0)
+    df["Capacity (GW)"] = pd.to_numeric(df["Capacity (GW)"], errors="coerce").fillna(0)
 
-    # Compute cumulative sums by Scenario + Subsector
-    df = df.sort_values(["Scenario", "Subsector", "Year"])
-    df["Cumulative"] = df.groupby(["Scenario", "Subsector"])["NewCapacity(GW)"].cumsum()
-
-    # Only keep reporting years
-    df = df[df["Year"].isin([2025, 2030, 2035])]
+    # Keep only milestone years
+    df = df[df["Year"].isin([2024, 2030, 2035])]
 
     # Harmonize subsector labels
     df["Subsector"] = df["Subsector"].replace({
@@ -57,8 +53,16 @@ def generate_fig5_2_1_cumulative(df: pd.DataFrame, output_dir: str) -> None:
         "Imports": "Imports"
     })
 
-    # Apply scenario mapping
-    df["ScenarioLabel"] = df["Scenario"].apply(map_scenario_key)
+    # Map scenarios
+    def local_map(scen: str) -> str:
+        if scen == "NDC_BASE-RG":
+            return "WEM"
+        elif scen == "NDC_BASE-IRPFull-RG":
+            return "WEM-IRP"
+        else:
+            return map_scenario_key(scen)
+
+    df["ScenarioLabel"] = df["Scenario"].apply(local_map)
 
     # Build color map
     subsectors = df["Subsector"].unique()
@@ -76,14 +80,14 @@ def generate_fig5_2_1_cumulative(df: pd.DataFrame, output_dir: str) -> None:
     fig = px.bar(
         df,
         x="ScenarioLabel",
-        y="Cumulative",
+        y="Capacity (GW)",
         color="Subsector",
         facet_col="Year",
         facet_col_wrap=3,
         barmode="stack",
         category_orders={"Subsector": stack_order},
         color_discrete_map=color_map,
-        labels={"Cumulative": "GW", "ScenarioLabel": ""},
+        labels={"Capacity (GW)": "GW", "ScenarioLabel": ""},
     )
 
     # Apply style
@@ -102,8 +106,27 @@ def generate_fig5_2_1_cumulative(df: pd.DataFrame, output_dir: str) -> None:
         margin=dict(l=40, r=180, t=40, b=120),
         yaxis=dict(
             dtick=10,
-            title=dict(text="Cumulative New Capacity (GW)", font=dict(size=21))
+            title=dict(text="Capacity (GW)", font=dict(size=21))
         )
+    )
+        # After apply_common_layout and other updates
+    fig.update_layout(
+        title="",
+        legend_title_text="",
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=1,
+            xanchor="left",
+            x=1.02
+        ),
+        font=dict(size=14),
+        margin=dict(l=40, r=180, t=40, b=120),
+        yaxis=dict(
+            dtick=10,
+            title=dict(text="Capacity (GW)", font=dict(size=21))
+        ),
+        bargap=0.45  # <── increase gap → bars thinner (default is 0.2)
     )
 
     # Clean facet titles
@@ -120,24 +143,24 @@ def generate_fig5_2_1_cumulative(df: pd.DataFrame, output_dir: str) -> None:
         print("👩‍💻 dev_mode ON — showing chart only (no export)")
     else:
         print("💾 saving figure and data")
-        save_figures(fig, output_dir, name="fig5_2_1_cumulative_new_capacity")
+        save_figures(fig, output_dir, name="fig5_2_1_irp_capacity")
 
         # Copy main image into gallery
         gallery_dir = project_root / "outputs" / "gallery"
         gallery_dir.mkdir(parents=True, exist_ok=True)
-        src_img = Path(output_dir) / "fig5_2_1_cumulative_new_capacity.png"
+        src_img = Path(output_dir) / "fig5_2_1_irp_capacity.png"
         if src_img.exists():
             shutil.copy(src_img, gallery_dir / src_img.name)
 
         # Export CSV
         Path(output_dir).mkdir(parents=True, exist_ok=True)
-        df.to_csv(Path(output_dir) / "fig5_2_1_cumulative_new_capacity_data.csv", index=False)
+        df.to_csv(Path(output_dir) / "fig5_2_1_irp_capacity_data.csv", index=False)
 
 
 if __name__ == "__main__":
-    data_path = project_root / "data" / "processed" / "5.2.1_2_pwr_new_capacity.csv"
+    data_path = project_root / "data" / "processed" / "5.2.1_4_pwr_irp_capacity.csv"
     df = pd.read_csv(data_path)
 
-    out = project_root / "outputs" / "charts_and_data" / "fig5_2_1_cumulative_new_capacity"
+    out = project_root / "outputs" / "charts_and_data" / "fig5_2_1_irp_capacity"
     out.mkdir(parents=True, exist_ok=True)
-    generate_fig5_2_1_cumulative(df, str(out))
+    generate_fig5_2_1_irp_capacity(df, str(out))
