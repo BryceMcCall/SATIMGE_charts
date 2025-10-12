@@ -1,4 +1,4 @@
-# charts/chart_generators/fig5_2_1_power_capacity.py
+# charts/chart_generators/fig5_2_1_sarem_capacity.py
 
 import sys
 from pathlib import Path
@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.express as px
 from charts.common.style import apply_common_layout, color_for
 from charts.common.save import save_figures
-from utils.mappings import map_scenario_key   # ← import mapping
+from utils.mappings import map_scenario_key
 import yaml
 import shutil
 
@@ -28,42 +28,50 @@ else:
     dev_mode = False
 
 
-def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
+def generate_fig5_2_1_sarem_capacity(df: pd.DataFrame, output_dir: str) -> None:
     """
-    Generate stacked bar chart for total power sector capacity by scenario.
-    Matches Tableau chart 5.2.1-1.
+    Generate stacked bar chart for SAREM comparison of installed capacity
+    in 2024, 2030, and 2035.
     """
-    print("generating figure 5.2.1-1: power sector capacity")
+    print("generating figure 5.2.1-X: SAREM capacity comparison")
     print(f"🛠️ dev_mode = {dev_mode}")
     print(f"📂 Output directory: {output_dir}")
 
     # Ensure numeric
     df["Year"] = df["Year"].astype(int)
-    df["Capacity (GW)"] = pd.to_numeric(df["Capacity (GW)"], errors="coerce")
+    df["Capacity (GW)"] = pd.to_numeric(df["Capacity (GW)"], errors="coerce").fillna(0)
 
-    # Filter only reporting years
+    # Keep only milestone years
     df = df[df["Year"].isin([2024, 2030, 2035])]
 
     # Harmonize subsector labels
     df["Subsector"] = df["Subsector"].replace({
-        "ECoal": "Coal", "EOil": "Oil", "EGas": "Gas", "ENuclear": "Nuclear",
+        "ECoal": "Coal", "EOil": "Oil", "EGas": "Natural Gas", "ENuclear": "Nuclear",
         "EHydro": "Hydro", "EBiomass": "Biomass", "EWind": "Wind",
-        "EPV": "Solar PV", "ECSP": "CSP", "EHybrid": "Hybrid",
+        "EPV": "Solar PV", "ECSP": "Solar CSP", "EHybrid": "Hybrid",
         "EBattery": "Battery Storage", "EPumpStorage": "Pumped Storage",
         "Imports": "Imports"
     })
 
-    # Apply scenario mapping
-    df["ScenarioLabel"] = df["Scenario"].apply(map_scenario_key)
+    # Map scenarios → concise x labels
+    def local_map(scen: str) -> str:
+        if scen == "NDC_BASE-RG":
+            return "WEM"
+        elif scen == "NDC_BASE-SAREM-RG":
+            return "WEM-SAREM"
+        else:
+            return map_scenario_key(scen)
+
+    df["ScenarioLabel"] = df["Scenario"].apply(local_map)
 
     # Build color map
     subsectors = df["Subsector"].unique()
     color_map = {s: color_for("fuel", s) for s in subsectors}
 
-    # Define stack order (Coal at bottom)
+    # Define stack order
     stack_order = [
-        "Coal", "Oil", "Gas", "Nuclear", "Hydro", "Biomass",
-        "Wind", "Solar PV", "CSP", "Hybrid",
+        "Coal", "Oil", "Natural Gas", "Nuclear", "Hydro", "Biomass",
+        "Wind", "Solar PV", "Solar CSP", "Hybrid",
         "Battery Storage", "Pumped Storage", "Imports"
     ]
     stack_order = [s for s in stack_order if s in subsectors]
@@ -71,7 +79,7 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
     # Plot
     fig = px.bar(
         df,
-        x="ScenarioLabel",   # ← use mapped scenario labels
+        x="ScenarioLabel",
         y="Capacity (GW)",
         color="Subsector",
         facet_col="Year",
@@ -79,10 +87,10 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
         barmode="stack",
         category_orders={"Subsector": stack_order},
         color_discrete_map=color_map,
-        labels={"Capacity (GW)": "Capacity (GW)", "ScenarioLabel": ""},
+        labels={"Capacity (GW)": "GW", "ScenarioLabel": ""},
     )
 
-    # Apply style
+    # Apply shared style (matches your IRP/IRP Lite modules)
     fig = apply_common_layout(fig)
     fig.update_layout(
         title="",
@@ -97,20 +105,19 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
         font=dict(size=14),
         margin=dict(l=40, r=180, t=40, b=120),
         yaxis=dict(
-            range=[0, 120],
             dtick=10,
-            title=dict(text="Capacity (GW)", font=dict(size=21))
-        )
+            title=dict(text="Capacity (GW)", font=dict(size=25))
+        ),
+        bargap=0.45
     )
 
-    # Clean facet titles
+    # Clean facet titles to just the year
     fig.for_each_annotation(lambda a: a.update(
         text=a.text.split("=")[-1],
         font=dict(size=21)
     ))
 
     # Rotate x-axis labels
- 
     fig.update_xaxes(tickangle=-90)
 
     # Save
@@ -118,24 +125,24 @@ def generate_fig5_2_1(df: pd.DataFrame, output_dir: str) -> None:
         print("👩‍💻 dev_mode ON — showing chart only (no export)")
     else:
         print("💾 saving figure and data")
-        save_figures(fig, output_dir, name="fig5_2_1_power_capacity")
+        save_figures(fig, output_dir, name="fig5_2_1_sarem_capacity")
 
         # Copy main image into gallery
         gallery_dir = project_root / "outputs" / "gallery"
         gallery_dir.mkdir(parents=True, exist_ok=True)
-        src_img = Path(output_dir) / "fig5_2_1_power_capacity.png"
+        src_img = Path(output_dir) / "fig5_2_1_sarem_capacity_report.png"
         if src_img.exists():
             shutil.copy(src_img, gallery_dir / src_img.name)
 
-        # Export CSV
+        # Export CSV snapshot used to plot
         Path(output_dir).mkdir(parents=True, exist_ok=True)
-        df.to_csv(Path(output_dir) / "fig5_2_1_power_capacity_data.csv", index=False)
+        df.to_csv(Path(output_dir) / "fig5_2_1_sarem_capacity_data.csv", index=False)
 
 
 if __name__ == "__main__":
-    data_path = project_root / "data" / "processed" / "5.2.1_1_Pwr_total_cap_scenfam_pg84.csv"
+    data_path = project_root / "data" / "processed" / "5.2.1_8_pwr_sarem_capacity.csv"
     df = pd.read_csv(data_path)
 
-    out = project_root / "outputs" / "charts_and_data" / "fig5_2_1_power_capacity"
+    out = project_root / "outputs" / "charts_and_data" / "fig5_2_1_sarem_capacity"
     out.mkdir(parents=True, exist_ok=True)
-    generate_fig5_2_1(df, str(out))
+    generate_fig5_2_1_sarem_capacity(df, str(out))

@@ -31,7 +31,7 @@ else:
 def generate_fig5_2_1_cumulative(df: pd.DataFrame, output_dir: str) -> None:
     """
     Generate stacked bar chart for cumulative new capacity additions
-    in 2025, 2030, and 2035.
+    in 2024, 2030, and 2035.
     """
     print("generating figure 5.2.1-2: cumulative new capacity")
     print(f"🛠️ dev_mode = {dev_mode}")
@@ -46,7 +46,7 @@ def generate_fig5_2_1_cumulative(df: pd.DataFrame, output_dir: str) -> None:
     df["Cumulative"] = df.groupby(["Scenario", "Subsector"])["NewCapacity(GW)"].cumsum()
 
     # Only keep reporting years
-    df = df[df["Year"].isin([2025, 2030, 2035])]
+    df = df[df["Year"].isin([2024, 2030, 2035])]
 
     # Harmonize subsector labels
     df["Subsector"] = df["Subsector"].replace({

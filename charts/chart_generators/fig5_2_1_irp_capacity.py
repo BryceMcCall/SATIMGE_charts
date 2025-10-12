@@ -46,9 +46,9 @@ def generate_fig5_2_1_irp_capacity(df: pd.DataFrame, output_dir: str) -> None:
 
     # Harmonize subsector labels
     df["Subsector"] = df["Subsector"].replace({
-        "ECoal": "Coal", "EOil": "Oil", "EGas": "Gas", "ENuclear": "Nuclear",
+        "ECoal": "Coal", "EOil": "Oil", "EGas": "Natural Gas", "ENuclear": "Nuclear",
         "EHydro": "Hydro", "EBiomass": "Biomass", "EWind": "Wind",
-        "EPV": "Solar PV", "ECSP": "CSP", "EHybrid": "Hybrid",
+        "EPV": "Solar PV", "ECSP": "Solar CSP", "EHybrid": "Hybrid",
         "EBattery": "Battery Storage", "EPumpStorage": "Pumped Storage",
         "Imports": "Imports"
     })
@@ -68,10 +68,10 @@ def generate_fig5_2_1_irp_capacity(df: pd.DataFrame, output_dir: str) -> None:
     subsectors = df["Subsector"].unique()
     color_map = {s: color_for("fuel", s) for s in subsectors}
 
-    # Define stack order (Coal at bottom)
+    # Define stack order
     stack_order = [
-        "Coal", "Oil", "Gas", "Nuclear", "Hydro", "Biomass",
-        "Wind", "Solar PV", "CSP", "Hybrid",
+        "Coal", "Oil", "Natural Gas", "Nuclear", "Hydro", "Biomass",
+        "Wind", "Solar PV", "Solar CSP", "Hybrid",
         "Battery Storage", "Pumped Storage", "Imports"
     ]
     stack_order = [s for s in stack_order if s in subsectors]
@@ -106,27 +106,9 @@ def generate_fig5_2_1_irp_capacity(df: pd.DataFrame, output_dir: str) -> None:
         margin=dict(l=40, r=180, t=40, b=120),
         yaxis=dict(
             dtick=10,
-            title=dict(text="Capacity (GW)", font=dict(size=21))
-        )
-    )
-        # After apply_common_layout and other updates
-    fig.update_layout(
-        title="",
-        legend_title_text="",
-        legend=dict(
-            orientation="v",
-            yanchor="top",
-            y=1,
-            xanchor="left",
-            x=1.02
+            title=dict(text="Capacity (GW)", font=dict(size=25))  # match TWh styling
         ),
-        font=dict(size=14),
-        margin=dict(l=40, r=180, t=40, b=120),
-        yaxis=dict(
-            dtick=10,
-            title=dict(text="Capacity (GW)", font=dict(size=21))
-        ),
-        bargap=0.45  # <── increase gap → bars thinner (default is 0.2)
+        bargap=0.45  # consistent with TWh
     )
 
     # Clean facet titles
@@ -148,7 +130,7 @@ def generate_fig5_2_1_irp_capacity(df: pd.DataFrame, output_dir: str) -> None:
         # Copy main image into gallery
         gallery_dir = project_root / "outputs" / "gallery"
         gallery_dir.mkdir(parents=True, exist_ok=True)
-        src_img = Path(output_dir) / "fig5_2_1_irp_capacity.png"
+        src_img = Path(output_dir) / "fig5_2_1_irp_capacity_report.png"
         if src_img.exists():
             shutil.copy(src_img, gallery_dir / src_img.name)
 

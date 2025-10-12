@@ -10,7 +10,6 @@ from utils.mappings import (
     extract_carbon_budget,
     map_economic_growth,
     apply_mapping_and_clean
-
 )
 
 # 1) Point to the actual CSV (with underscore)
@@ -20,8 +19,9 @@ RAW_PATH = "data/raw/REPORT_00.csv"
 OUT_PATH = "data/processed/processed_dataset.csv"
 
 # 3) Your local Sets & Maps file in OneDrive
-#path_setsandmaps = r"C:\Models\SATIMGE_Veda\SetsAndMaps\SetsAndMaps.xlsm"
-path_setsandmaps = r"C:\SATIMGE_charts\SetsAndMaps.xlsm"
+# path_setsandmaps = r"C:\Models\SATIMGE_Veda\SetsAndMaps\SetsAndMaps.xlsm"
+path_setsandmaps = r"C:\Models\SATIMGE_charts\SetsAndMaps.xlsm"
+
 print('reading in raw data file')
 df = pd.read_csv(RAW_PATH)
 
@@ -61,14 +61,14 @@ proc_df = extract_carbon_budget(proc_df)
 proc_df['EconomicGrowth'] = proc_df['Scenario'].apply(map_economic_growth)
 # proc_df['SectorGroup'] = proc_df['Sector'].apply(map_sector_group)
 
+# Convert object columns to categories (efficient for repeated labels)
+for col in proc_df.select_dtypes(include="object"):
+    proc_df[col] = proc_df[col].astype("category")
+
+# Save outputs
 proc_df.to_csv(OUT_PATH, index=False)
 print(f"Processed dataset saved to {OUT_PATH}")
 
-# Coerce object columns to strings
-for col in proc_df.select_dtypes(include=['object']).columns:
-    proc_df[col] = proc_df[col].astype(str)
-
-# Write Parquet
 parquet_path = "data/processed/processed_dataset.parquet"
 proc_df.to_parquet(parquet_path, index=False)
 print(f"Also saved Parquet dataset to {parquet_path}")

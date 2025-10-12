@@ -21,20 +21,19 @@ else:
 FONT_FAMILY = "Aptos, Arial, Segoe UI, Calibri, Helvetica, sans-serif"
 
 # ───────────────────────────── Base palettes ──────────────────────────────────
-# Fuels / technologies — aligned to fig_newPWR hard-coded palette
+# Fuels / technologies — aligned to IEA-style palette
 FUEL_COLORS = {
-    # Palette from fig_newPWR
-    "Coal":             "#505457",  # ECoal
-    "Nuclear":          "#ca1d90",  # ENuclear
-    "Hydro":            "#8c564b",  # EHydro
-    "Natural Gas":      "#ee2c4c",  # EGas
-    "Oil":              "#e66177",  # EOil
-    "Biomass":          "#03ff2d",  # EBiomass
-    "Wind":             "#3f1ae6",  # EWind
-    "Solar PV":         "#e6e21a",  # EPV / "Solar PV"
-    "Solar CSP":        "#fc5c34",  # ECSP
-    "Imports":          "#9467bd",  # EImports / Imports
-    "Other":            "#e377c2",
+    "Coal":        "#505457",  # dark grey/black
+    "Oil":         "#A0522D",  # brown (sienna)
+    "Natural Gas": "#1F77B4",  # classic blue (distinct from hydro)
+    "Nuclear":     "#9467BD",  # violet/purple
+    "Hydro":       "#1E90FF",  # deep blue
+    "Biomass":     "#2CA02C",  # green
+    "Wind":        "#17BECF",  # teal/cyan
+    "Solar PV":    "#FFD700",  # golden yellow
+    "Solar CSP":   "#FF7F0E",  # orange
+    "Imports":     "#8C564B",  # muted brown
+    "Other":       "#E377C2",  # pink/magenta
 
     # Additional techs retained from previous palette
     "Diesel":           "#8B5E34",
@@ -105,7 +104,6 @@ FALLBACK_CYCLE = [
 
 # ─────────────── Aliases / normalizers (includes E-prefixed legends) ─────────
 FUEL_ALIASES = {
-    # Canonical tokens
     "COAL": "Coal", "NUCLEAR": "Nuclear", "HYDRO": "Hydro", "WIND": "Wind",
     "PV": "Solar PV", "CSP": "Solar CSP", "BIOMASS": "Biomass",
     "BIOETHANOL": "Bioethanol", "DIESEL": "Diesel", "GASOLINE": "Gasoline",
@@ -117,7 +115,6 @@ FUEL_ALIASES = {
     "IMPORTS": "Imports", "EIMPORTS": "Imports",
     "AUTOGEN-CHEMICAL": "AutoGen-Chemical", "HYBRID": "Hybrid",
 
-    # E-prefixed legend labels
     "ECOAL": "Coal", "ENUCLEAR": "Nuclear", "EHYDRO": "Hydro", "EWIND": "Wind",
     "EPV": "Solar PV", "ECSP": "Solar CSP", "EBIOMASS": "Biomass",
     "EBIOETHANOL": "Bioethanol", "EGAS": "Natural Gas", "EDIESEL": "Diesel",
@@ -163,9 +160,6 @@ def _norm(s: Optional[str]) -> str:
     return (s or "").strip()
 
 def _norm_fuel(label: str) -> str:
-    """
-    Normalise tech labels (case-insensitive; ignores spaces/hyphens; supports E-prefix).
-    """
     s = _norm(label)
     if not s:
         return s
@@ -208,9 +202,6 @@ def _family_from_name(s: str) -> str:
 
 # ───────────────────────────── Public color API ───────────────────────────────
 def color_for(kind: str, name: str) -> str:
-    """
-    kind ∈ {'fuel','sector','scenario','scenario_family','scenario_group'}
-    """
     name = _norm(name)
     if not name:
         return DEFAULT_COLOR
@@ -256,16 +247,6 @@ def color_sequence(kind: str, names: Iterable[str]) -> list[str]:
 
 # ──────────────── Data-driven palette extension from dataframe ────────────────
 def extend_palettes_from_df(df) -> None:
-    """
-    Ensure colors exist for all seen labels & fill scenario→group/family maps.
-    Looks for columns:
-      Fuels: 'Commodity_Name' or 'Commodity'
-      Sectors: 'Sector'
-      Scenario families: 'ScenarioFamily'
-      Scenario groups: 'ScenarioGroup' or 'Scenario_Group'
-      Scenarios: 'Scenario'
-    """
-    # Fuels
     for col in ("Commodity_Name", "Commodity"):
         if col in df.columns:
             names = sorted({_norm_fuel(x) for x in df[col].dropna().astype(str).unique()})
@@ -273,14 +254,12 @@ def extend_palettes_from_df(df) -> None:
                 _ = color_for("fuel", n)
             break
 
-    # Sectors
     if "Sector" in df.columns:
         names = sorted({SECTOR_ALIASES.get(str(x).upper(), str(x))
                         for x in df["Sector"].dropna().astype(str).unique()})
         for n in names:
             _ = color_for("sector", n)
 
-    # Scenario families
     fam_col = "ScenarioFamily" if "ScenarioFamily" in df.columns else None
     if fam_col:
         fams = sorted({str(x) for x in df[fam_col].dropna().astype(str).unique()})
@@ -290,7 +269,6 @@ def extend_palettes_from_df(df) -> None:
             for scen, fam in df[["Scenario", fam_col]].dropna().astype(str).values:
                 SCENARIO_TO_FAMILY.setdefault(scen, fam)
 
-    # Scenario groups
     grp_col = "ScenarioGroup" if "ScenarioGroup" in df.columns else ("Scenario_Group" if "Scenario_Group" in df.columns else None)
     if grp_col:
         grps = sorted({str(x) for x in df[grp_col].dropna().astype(str).unique()})
@@ -301,17 +279,12 @@ def extend_palettes_from_df(df) -> None:
             for scen, grp in df[["Scenario", grp_col]].dropna().astype(str).values:
                 SCENARIO_TO_GROUP.setdefault(scen, grp)
 
-    # Scenarios
     if "Scenario" in df.columns:
         for n in sorted({str(x) for x in df["Scenario"].dropna().astype(str).unique()}):
             _ = color_for("scenario", n)
 
 # ───────────────────────────── Common Plotly layout ───────────────────────────
 def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure:
-    """
-    Apply consistent fonts, spacing, and grid.
-    image_type: 'dev' (quick previews) or 'report' (high-res export scaling)
-    """
     scale_map = {"dev": 1.0, "report": 2.0}
     scale = scale_map.get(image_type, 1.0)
 
@@ -319,34 +292,41 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
     title_font  = 18 * scale
     legend_font = 12 * scale
     tick_font   = int(base_font * 0.8)
+    axis_title_font = int(title_font * 0.8)
 
     fig.update_layout(
         template="simple_white",
         height=int(600 * scale),
         font=dict(family=FONT_FAMILY, size=base_font, color="black"),
         margin=dict(l=80, r=80, t=60, b=int(100 * scale)),
-        title=dict(font=dict(family=FONT_FAMILY, size=title_font), x=0.5, xanchor="center", pad=dict(b=80)),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.30, xanchor="center", x=0.5, font=dict(size=legend_font, family=FONT_FAMILY)),
-        shapes=[dict(type="rect", xref="paper", yref="paper", x0=0, x1=1, y0=-0.30, y1=0, fillcolor="white", line=dict(color="lightgrey"), layer="below")]
+        title=dict(font=dict(family=FONT_FAMILY, size=title_font),
+                   x=0.5, xanchor="center", pad=dict(b=80)),
+        legend=dict(orientation="h",
+                    yanchor="bottom", y=-0.32,
+                    xanchor="center", x=0.5,
+                    font=dict(size=legend_font, family=FONT_FAMILY)),
     )
 
     fig.update_xaxes(
         showgrid=True, gridwidth=0.6, gridcolor="lightgrey",
         tickangle=0, ticks="outside", ticklen=5,
         tickfont=dict(size=tick_font, family=FONT_FAMILY),
-        title_font=dict(size=title_font, family=FONT_FAMILY),
-        tickmode="linear", dtick=5,
+        title_font=dict(size=axis_title_font, family=FONT_FAMILY),
+        tickmode="auto", dtick=None,
         showline=True, mirror=True, linecolor="lightgrey", linewidth=1.2,
-        minor=dict(ticks="outside", showgrid=True, gridcolor="whitesmoke", ticklen=3, tick0=0, dtick=1)
+        minor=dict(ticks="outside", showgrid=True, gridcolor="whitesmoke",
+                   ticklen=3, tick0=0, dtick=1)
     )
 
     fig.update_yaxes(
         showgrid=True, gridwidth=0.6, gridcolor="lightgrey",
         ticks="outside", ticklen=5,
         tickfont=dict(size=tick_font, family=FONT_FAMILY),
-        title_font=dict(size=title_font, family=FONT_FAMILY),
+        title_font=dict(size=axis_title_font, family=FONT_FAMILY),
         rangemode="tozero",
         showline=True, mirror=True, linecolor="lightgrey", linewidth=1.2,
-        minor=dict(ticks="outside", showgrid=True, gridcolor="whitesmoke", ticklen=3, tick0=0, dtick=25000)
+        minor=dict(ticks="outside", showgrid=True, gridcolor="whitesmoke",
+                   ticklen=3, tick0=0, dtick=25000)
     )
+
     return fig
