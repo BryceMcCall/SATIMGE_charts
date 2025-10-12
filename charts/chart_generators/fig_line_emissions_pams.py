@@ -1,4 +1,4 @@
-# Emissions line chart for all scenarios in the NDC project, colour coded by scenario family
+# Emissions line chart for all PAMS measures scenarios on WEM
 
 import sys
 from pathlib import Path
@@ -23,83 +23,81 @@ else:
     dev_mode = False
 
 
-def generate_fig_line_emissions_ALL(df: pd.DataFrame, output_dir: str) -> None:
-    print("generating line emissions chart for all scenarios ")
+def generate_fig_line_emissions_pams(df: pd.DataFrame, output_dir: str) -> None:
+    print("generating line emissions chart for PAMs on WEM")
+
+    ### slice up dataset
 
     year_select = range(2024,2036,1)
 
-    scenario_colors = {
-        'CPP-IRP': "#d46820",  
-        'CPP-IRPLight': "#e58e5a",
-        'CPP-SAREM': "#1cdaf3",
-        'CPPS': "#ff6e1a",
-        'High Carbon': "#ff0000",
-        'Low Carbon': "#008000",
-        'WEM': "#1E1BD3"
-    }
-
     cols = ["Scenario","ScenarioKey","Year","CO2eq"]
+    scen_keep = "WEM"
 
-    dfx = df[(df["Year"].isin(year_select))][cols]
+    dfx = df[(df["Year"].isin(year_select))]
     dfx['CO2eq'] = dfx['CO2eq']*0.001 #convert to Mt
 
+    dfx = dfx[dfx['ScenarioKey']==scen_keep]
+    dfx = dfx[dfx["EconomicGrowth"]=="Reference"]
+    dfx = dfx[dfx["CarbonBudget"] == "NoBudget"]
+
+    dfx = dfx[~dfx["Scenario"].str.contains("Oil", case=False, na=False)] # drop the oil sensitivities
+    dfx = dfx[~dfx["Scenario"].str.contains("EAF", case=False, na=False)] # drop the EAF sensitivities
+
+    #rename scenarios for these specifically:
+
+    dfx["Scenario_clean"] = (
+        dfx["Scenario"]
+        .str.replace(r"^NDC_", "", regex=True)     # remove prefix NDC_
+        .str.replace(r"-RG$", "", regex=True)      # remove suffix -RG
+        .str.replace("BASE", "WEM", regex=False)   # replace BASE with WEM
+    )
+
+
+    #### END of data selection
     data = (
-            dfx.groupby(["Scenario","ScenarioKey","Year"])["CO2eq"]
+            dfx.groupby(["Scenario","Scenario_clean","Year"])["CO2eq"]
             .sum()
             .reset_index()
             )
+    scenarios_list = data["Scenario_clean"].unique().tolist()
+
+    import plotly.graph_objects as go
+
+    highlight_scenario = "WEM"  # Set this to the Scenario_clean you want to color
+    highlight_color = "#1A17DF"  # Your chosen color for the highlight
 
     fig = go.Figure()
-    # Use the order from scenario_colors for consistent legend and color mapping
-    for scenario in scenario_colors:
-        subset = data[data["ScenarioKey"] == scenario]
+    for scenario in scenarios_list:
+        subset = data[data["Scenario_clean"] == scenario]
         if not subset.empty:
+            color = highlight_color if scenario == highlight_scenario else None  # None lets Plotly pick default
             fig.add_trace(go.Scatter(
                 x=subset["Year"],
                 y=subset["CO2eq"],
                 mode="lines",
                 name=scenario,
-                line=dict(width=1.5, color=scenario_colors[scenario]),
+                line=dict(width=3 if scenario == highlight_scenario else 1.8, color=color),
                 showlegend=True
             ))
-
-    fig.update_layout(
-    title="CO₂ Emissions by Scenario",
-    xaxis_title="Year",
-    yaxis_title="Mt CO₂eq",
-    legend_title="Scenario",
-    legend=dict(
-        orientation="v",
-        yanchor="top",
-        y=1,
-        xanchor="left",
-        x=1.02
-        )
-    )
 
     fig.update_layout(
         title="",
         xaxis_title="",
         yaxis_title="Mt CO₂eq",
-        xaxis=dict(
-            range=[2024, 2035],
-            tickmode="linear",
-            dtick=1),
-
+        legend_title="",
         legend=dict(
-            title = "",
-            orientation="h",
+            orientation="v",
             yanchor="top",
-            #xanchor="left",
-            #x = 0.4,
-            #y = -0.15  #move it to underneath
+            y=1,
+            xanchor="left",
+            x=1.02
         )
     )
 
     fig = apply_common_layout(fig)
 
     print("saving generate_fig_line_emissions_ALL")
-    save_figures(fig, output_dir, name="fig_line_emissions_ALL")
+    save_figures(fig, output_dir, name="fig_line_emissions_pams")
 
     if not dev_mode:
         data.to_csv(Path(output_dir) / "data.csv", index=False)
@@ -108,15 +106,15 @@ def generate_fig_line_emissions_ALL(df: pd.DataFrame, output_dir: str) -> None:
 if __name__ == "__main__":
     project_root = Path(__file__).resolve().parents[2]
     parquet_path = project_root / "data/processed/processed_dataset.parquet"
-    # Only load necessary columns
-    columns_needed = ["Scenario", "Year", "CO2eq"]
+    
+    
     # Read in chunks and filter as we go (if pyarrow is available)
     try:
         import pyarrow.parquet as pq
         
         year_select = list(range(2024, 2036))
         table = pq.read_table(
-            parquet_path        
+            parquet_path    
         )
         df = table.to_pandas()
         
@@ -127,6 +125,6 @@ if __name__ == "__main__":
         year_select = list(range(2024, 2036))
         df = df[(df["Scenario"].isin(selected_scenarios)) & (df["Year"].isin(year_select))]
 
-    out = project_root / "outputs/charts_and_data/generate_fig_line_emissions_ALL"
+    out = project_root / "outputs/charts_and_data/fig_line_emissions_pams"
     out.mkdir(parents=True, exist_ok=True)
-    generate_fig_line_emissions_ALL(df, str(out))
+    generate_fig_line_emissions_pams(df, str(out))
