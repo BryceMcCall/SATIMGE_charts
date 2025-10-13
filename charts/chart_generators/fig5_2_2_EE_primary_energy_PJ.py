@@ -163,8 +163,8 @@ def generate_fig5_3_9_ee_combo_hstack(df_pj, df_twh, output_dir: str) -> None:
     combo = apply_common_layout(combo)
     combo.update_layout(
         barmode="stack",
-        bargap=0.15,
-        bargroupgap=0.05,
+        bargap=0.20,
+        bargroupgap=0.15,
         legend=dict(
             orientation="h",
             y=-0.38,                 # push legend further down
