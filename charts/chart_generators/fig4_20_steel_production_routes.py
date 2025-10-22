@@ -110,8 +110,8 @@ def generate_fig4_20_steel_production_routes(df: pd.DataFrame, output_dir: str) 
 
 
     # Set explicit y-axis titles per facet (size = 20)
-    fig.update_yaxes(title_text="Steel - Production (Mt)", row=1, col=1, title_font=dict(size=20))
-    fig.update_yaxes(title_text="DRI - Production (Mt)",   row=2, col=1, title_font=dict(size=20))
+    fig.update_yaxes(title_text="Steel - Production (Mt)", row=2, col=1, title_font=dict(size=20))
+    fig.update_yaxes(title_text="DRI - Production (Mt)",   row=1, col=1, title_font=dict(size=20))
 
 
     # Show all years on x-axis

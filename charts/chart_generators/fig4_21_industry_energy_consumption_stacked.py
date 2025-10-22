@@ -99,8 +99,8 @@ def generate_fig4_21_industry_energy_consumption(df: pd.DataFrame, output_dir: s
     fig.update_yaxes(tickfont=dict(size=18), minor=dict(showgrid=True, dtick=25))
 
     # Row-specific y-axis titles (multiline after (PJ))
-    fig.update_yaxes(title_text="Energy consumption (PJ)<br>Rest of industry", row=1, col=1, title_font=dict(size=21))
-    fig.update_yaxes(title_text="Energy consumption (PJ)<br>Heavy Industry",  row=2, col=1, title_font=dict(size=21))
+    fig.update_yaxes(title_text="Energy consumption (PJ)<br>Rest of industry", row=2, col=1, title_font=dict(size=21))
+    fig.update_yaxes(title_text="Energy consumption (PJ)<br>Heavy Industry",  row=1, col=1, title_font=dict(size=21))
 
     if dev_mode:
         print("👩‍💻 dev_mode ON — preview only")
