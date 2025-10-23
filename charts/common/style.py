@@ -29,6 +29,7 @@ FUEL_COLORS = {
     "Pumped Storage": "#3232F3",  # dark blue
     "Battery":        "#90EE90",  # light green
     "Biomass":        "#2CA02C",  # green
+    "Biowood":        "#2CA02C",  # green
     "Wind":           "#17BECF",  # teal/cyan
     "Solar PV":       "#FFD700",  # golden yellow
     "Solar CSP":      "#FF7F0E",  # orange
@@ -39,7 +40,7 @@ FUEL_COLORS = {
     "Diesel":           "#8B5E34",
     "Gasoline":         "#C97C28",
     "Kerosene/Jet":     "#A1662F",
-    "LPG":              "#7A4F9A",
+    "LPG":              "#FF9F1C",
     "Syngas":           "#4F81BD",
     "Hydrogen":         "#00AEEF",
     "Electricity":      "#7E57C2",
@@ -298,7 +299,7 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
 
     fig.update_layout(
         template="simple_white",
-        height=int(600 * scale),
+        #height=int(600 * scale),
         font=dict(family=FONT_FAMILY, size=base_font, color="black"),
         margin=dict(l=80, r=80, t=60, b=int(100 * scale)),
         title=dict(font=dict(family=FONT_FAMILY, size=title_font),

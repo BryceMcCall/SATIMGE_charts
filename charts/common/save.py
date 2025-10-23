@@ -1,4 +1,3 @@
-
 # save.py
 
 from pathlib import Path
@@ -20,34 +19,55 @@ def _find_project_root(start: Path) -> Path:
         cur = cur.parent
     return start
 
+
+def _write(fig: go.Figure, path: Path, fmt: str, **kwargs) -> None:
+    fig.write_image(str(path), format=fmt, **kwargs)
+    print(f"✅ wrote {fmt.upper()} → {path}")
+
+
 def save_figures(fig: go.Figure, output_dir: str, name: str) -> None:
     """
-    Save a high-resolution PNG to the chart-specific folder AND to outputs/gallery.
+    Save a high-resolution PNG AND an SVG to the chart-specific folder,
+    and mirror both into outputs/gallery.
+
+    Creates:
+      <output_dir>/<name>_report.png
+      <output_dir>/<name>_report.svg
+      <project_root>/outputs/gallery/<name>_report.png
+      <project_root>/outputs/gallery/<name>_report.svg
     """
-    # 1) Resolve paths
+    # Ensure consistent canvas for both formats
+    width, height, scale = 1200, 800, 2.0
+    fig.update_layout(width=width, height=height)
+
+    # Paths
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Figure file name
     png_name = f"{name}_report.png"
+    svg_name = f"{name}_report.svg"
     png_path = output_dir / png_name
+    svg_path = output_dir / svg_name
 
-    # 2) Save to chart folder
-    print(f"💾 saving high-res PNG to {png_path}")
-    fig.write_image(str(png_path), format="png", scale=2.0, width=1200, height=800)
+    # Write to chart folder
+    print(f"💾 saving PNG to {png_path}")
+    _write(fig, png_path, "png", width=width, height=height, scale=scale)
+    print(f"💾 saving SVG to {svg_path}")
+    _write(fig, svg_path, "svg")  # no scale needed for SVG
 
-    # 3) Also save/copy to gallery
+    # Mirror into gallery
     project_root = _find_project_root(Path(__file__).resolve().parent)
     gallery_dir = project_root / "outputs" / "gallery"
     gallery_dir.mkdir(parents=True, exist_ok=True)
-    gallery_path = gallery_dir / png_name
 
-    try:
-        # copy to ensure exact same bytes; overwrite if exists
-        shutil.copy2(png_path, gallery_path)
-        print(f"🖼️  copied to gallery: {gallery_path}")
-    except Exception as e:
-        # Fallback: write directly if copy fails for any reason
-        print(f"⚠️ copy to gallery failed ({e}); writing image directly to gallery.")
-        fig.write_image(str(gallery_path), format="png", scale=2.0, width=1200, height=800)
-        print(f"🖼️  wrote directly to gallery: {gallery_path}")
+    for src, name_ in [(png_path, png_name), (svg_path, svg_name)]:
+        dst = gallery_dir / name_
+        try:
+            shutil.copy2(src, dst)
+            print(f"🖼️  copied to gallery: {dst}")
+        except Exception as e:
+            print(f"⚠️ copy failed ({e}); writing directly to gallery.")
+            if src.suffix.lower() == ".png":
+                _write(fig, dst, "png", width=width, height=height, scale=scale)
+            else:
+                _write(fig, dst, "svg")
