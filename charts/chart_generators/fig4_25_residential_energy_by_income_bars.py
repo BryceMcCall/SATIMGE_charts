@@ -1,197 +1,196 @@
-# charts/chart_generators/fig4_25_residential_energy_by_income_bars.py
-# -*- coding: utf-8 -*-
-"""
-Fig 4.25 — Household energy consumption by income group (PJ and % shares)
-Aligned panels, clean labels, normal save + gallery copy.
-"""
+# charts/chart_generators/fig4_25_residential_energy_by_income_pj.py
+#
+# Residential energy consumption by income group (PJ) — stacked bars, 2024/2030/2035
+# Facets by income group, fuel colors taken from common palette.
+#
+# Expected CSV columns:
+#   "Commodity Short Description", "Subsector", "Year", "SATIMGE"
+#   where Subsector ∈ {"HighIncome","MiddleIncome","LowIncome"} and SATIMGE is PJ.
+# charts/chart_generators/fig4_25_residential_energy_by_income_pj.py
 
 from __future__ import annotations
+import sys
 from pathlib import Path
-import shutil
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
+import yaml
+import shutil
 
-# ── Project paths ─────────────────────────────────────────────────────────────
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_PATH = PROJECT_ROOT / "data" / "processed" / "4_25_residential_energy_consump_by_income_cat_bar.csv"
-OUTPUT_STEM = "fig4_25_residential_energy_by_income_bars"
+project_root = Path(__file__).resolve().parents[2]
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
-# ── Try the project's saver; provide a safe fallback ─────────────────────────
-try:
-    from charts.common.save import save_matplotlib_fig  # type: ignore
+from charts.common.style import apply_common_layout, color_for
+from charts.common.save import save_figures
 
-    def save_with_gallery(fig):
-        save_matplotlib_fig(fig, OUTPUT_STEM, subdir=None, gallery=True,
-                            formats=("png", "svg", "pdf"), dpi=300)
-except Exception:
-    def save_with_gallery(fig):
-        charts_dir = PROJECT_ROOT / "outputs" / "charts_and_data" / OUTPUT_STEM
-        gallery_dir = PROJECT_ROOT / "outputs" / "gallery" / OUTPUT_STEM
-        charts_dir.mkdir(parents=True, exist_ok=True)
-        gallery_dir.mkdir(parents=True, exist_ok=True)
-        png = charts_dir / f"{OUTPUT_STEM}.png"
-        svg = charts_dir / f"{OUTPUT_STEM}.svg"
-        pdf = charts_dir / f"{OUTPUT_STEM}.pdf"
-        fig.savefig(png, dpi=300, bbox_inches="tight")
-        fig.savefig(svg, bbox_inches="tight")
-        fig.savefig(pdf, bbox_inches="tight")
-        shutil.copy2(png, gallery_dir / png.name)
-        print(f"Saved to:\n  {charts_dir}\n  {gallery_dir}")
+config_path = project_root / "config.yaml"
+if config_path.exists():
+    with open(config_path, "r", encoding="utf-8") as f:
+        _CFG = yaml.safe_load(f)
+    dev_mode = _CFG.get("dev_mode", False)
+else:
+    dev_mode = False
 
-# ── Styling knobs (easy to tweak later) ──────────────────────────────────────
-LEGEND_FONTSIZE = 14
-AXIS_LABEL_FONTSIZE = 18
-TICK_FONTSIZE = 12
-BAR_LABEL_FONTSIZE = 11
-XTICK_ROTATION = -45
-BAR_EDGE_WIDTH = 0
-ABS_YLABEL = "PJ consumed"
-SHARE_YLABEL = "Share of household category"
-ORDER_YEARS = [2024, 2030, 2035]
-ORDER_INCOME = ["HighIncome", "MiddleIncome", "LowIncome"]
-ORDER_FUELS = ["Coal", "Kerosene", "LPG", "Gas", "Electricity", "Biowood"]
+# ── EDITABLE FACET TITLES ───────────────────────────────────────────
+HIGH_INCOME_TITLE = "High Income"
+MIDDLE_INCOME_TITLE = "Middle Income"
+LOW_INCOME_TITLE = "Low Income"
+# --------------------------------------------------------------------
 
-# Colour convention (Electricity must remain exact)
-FUEL_COLORS = {
-    "Coal":        "#4D4D4D",
-    "Kerosene":    "#C49A00",
-    "LPG":         "#F1C40F",
-    "Gas":         "#D3543A",
-    "Electricity": "#6F63B6",
-    "Biowood":     "#2E8B57",
+_FUEL_CANON = {
+    "Coal": "Coal",
+    "Kerosene": "Kerosene",
+    "LPG": "LPG",
+    "Gas": "Gas",
+    "Electricity": "Electricity",
+    "Biowood": "Biowood",
 }
+STACK_ORDER = ["Electricity", "Biowood", "LPG", "Coal", "Kerosene",  "Gas"]
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-def _coerce_percent(x):
-    if pd.isna(x):
-        return np.nan
-    if isinstance(x, (int, float)):
-        return (x / 100.0) if x > 1 else float(x)
-    s = str(x).strip().replace("%", "").replace(",", "")
-    try:
-        v = float(s)
-        return (v / 100.0) if v > 1 else v
-    except ValueError:
-        return np.nan
+INCOME_ORDER = ["HighIncome", "MiddleIncome", "LowIncome"]
+INCOME_LABEL = {
+    "HighIncome": HIGH_INCOME_TITLE,
+    "MiddleIncome": MIDDLE_INCOME_TITLE,
+    "LowIncome": LOW_INCOME_TITLE,
+}
+YEAR_ORDER = [2024, 2030, 2035]
 
-def _prep(df_raw: pd.DataFrame):
-    df = df_raw.copy()
+Y_LABEL = "Energy consumption (PJ)"
+Y_LABEL_SIZE = 22
+FACET_TITLE_SIZE = Y_LABEL_SIZE  # match y-axis title size
+
+def generate_fig4_25_residential_energy_by_income_pj(df: pd.DataFrame, output_dir: str) -> None:
+    print("generating figure 4.25a: Residential — PJ consumed by income group (stacked)")
+    print(f"📂 Output directory: {output_dir}")
+
+    # ── tidy & filter ───────────────────────────────────────────────
+    df = df.rename(columns={
+        "Commodity Short Description": "Fuel",
+        "Subsector": "Income",
+        "SATIMGE": "PJ",
+    }).copy()
+    if "PJ" not in df.columns:
+        raise ValueError("Input must contain a 'SATIMGE' column (PJ values).")
+
     df["Year"] = pd.to_numeric(df["Year"], errors="coerce").astype("Int64")
-    df = df[df["Year"].isin(ORDER_YEARS)]
-    df["share"] = df["% of Total SATIMGE"].apply(_coerce_percent)
-    df.rename(columns={"SATIMGE": "PJ", "Commodity Short Description": "Fuel"}, inplace=True)
-    df["Subsector"] = pd.Categorical(df["Subsector"], ORDER_INCOME, ordered=True)
-    df["Fuel"] = pd.Categorical(df["Fuel"], ORDER_FUELS, ordered=True)
-    # totals for y-limit on the top panel
-    totals = (
-        df.pivot_table(index=["Subsector", "Year"], columns="Fuel",
-                       values="PJ", aggfunc="sum", fill_value=0, observed=False)
-          .sum(axis=1)
+    df = df[df["Year"].between(2024, 2035)]
+    df = df[df["Year"].isin(YEAR_ORDER)]
+
+    df["Fuel_canon"] = df["Fuel"].map(_FUEL_CANON).fillna(df["Fuel"])
+    df["PJ"] = pd.to_numeric(df["PJ"], errors="coerce").fillna(0.0)
+
+    df = (df.groupby(["Income", "Year", "Fuel_canon"], as_index=False)["PJ"].sum())
+    df["Income"] = pd.Categorical(df["Income"], INCOME_ORDER, ordered=True)
+    df["Income_pretty"] = df["Income"].map(INCOME_LABEL)
+
+    # years as **categorical** so we do not get continuous ticks
+    df["Year_cat"] = pd.Categorical(df["Year"].astype(str), [str(y) for y in YEAR_ORDER], ordered=True)
+
+    # seen fuels & colors (use canonical palette from style.py)
+    fuels_seen = [f for f in STACK_ORDER if f in set(df["Fuel_canon"].unique())]
+    color_map = {f: color_for("fuel", f) for f in fuels_seen}
+
+
+    # ── build figure ────────────────────────────────────────────────
+    fig = px.bar(
+        df,
+        x="Year_cat",  # categorical x
+        y="PJ",
+        color="Fuel_canon",
+        facet_col="Income_pretty",
+        facet_col_spacing=0.07,
+        barmode="stack",
+        category_orders={
+            "Year_cat": [str(y) for y in YEAR_ORDER],
+            "Fuel_canon": fuels_seen,
+            "Income_pretty": [INCOME_LABEL[i] for i in INCOME_ORDER],
+        },
+        color_discrete_map=color_map,
+        labels={"Year_cat": "", "PJ": Y_LABEL, "Fuel_canon": "", "Income_pretty": ""},
     )
-    abs_ymax = float(totals.max()) * 1.10  # 10% headroom
-    return df, abs_ymax
 
-def _x_positions():
-    """
-    Shared x positions: strictly 9 slots (3 years × 3 income groups), NO gaps.
-    """
-    positions = []
-    labels = []
-    centers = []
-    idx = 0
-    yrs_per_grp = len(ORDER_YEARS)
-    for inc in ORDER_INCOME:
-        start = idx
-        for y in ORDER_YEARS:
-            positions.append(idx)
-            labels.append(str(y))
-            idx += 1
-        centers.append(start + (yrs_per_grp - 1) / 2.0)
-    return np.array(positions), labels, np.array(centers)
+    fig = apply_common_layout(fig)
+    fig.update_layout(
+        title="",
+        legend_title_text="",
+        legend=dict(orientation="v", yanchor="top", y=1.0, xanchor="left", x=1.02),
+        margin=dict(l=90, r=260, t=48, b=90),
+        bargap=0.15,
+    )
 
-def _plot_stacked(ax, df, value_col, ylabel, ylim=None, label_threshold=None):
-    x_all, year_labels, centers = _x_positions()
-    width = 0.8
+    # categorical axes + -45° years (only 3 labels)
+    fig.update_xaxes(type="category", tickangle=-45, matches=None)
 
-    # initialise bottoms
-    bottoms = np.zeros_like(x_all, dtype=float)
-
-    for fuel in ORDER_FUELS:
-        seg = (
-            df[df["Fuel"] == fuel]
-            .pivot_table(index=["Subsector", "Year"], values=value_col,
-                         aggfunc="sum", observed=False)
+    # consistent y range + single y title on left facet
+    global_max = df.groupby(["Income_pretty", "Year_cat"])["PJ"].sum().max()
+    ymax = float(global_max) * 1.08
+    for i in range(1, 4):
+        axis = "yaxis" if i == 1 else f"yaxis{i}"
+        fig.layout[axis].update(
+            range=[0, ymax],
+            rangemode="tozero",
+            title=dict(text=(Y_LABEL if i == 1 else ""), font=dict(size=Y_LABEL_SIZE)),
+            automargin=True,
         )
+        # MORE minor ticks
+        fig.layout[axis]["minor"] = dict(showgrid=True, dtick=2)
 
-        vals = []
-        for inc in ORDER_INCOME:
-            for y in ORDER_YEARS:
-                try:
-                    vals.append(float(seg.loc[(inc, y)][value_col]))
-                except Exception:
-                    vals.append(0.0)
-        vals = np.array(vals, dtype=float)  # length must be 9
-        ax.bar(x_all, vals, width,
-               bottom=bottoms,
-               color=FUEL_COLORS.get(fuel, "#777777"),
-               edgecolor="none" if BAR_EDGE_WIDTH == 0 else "white",
-               linewidth=BAR_EDGE_WIDTH,
-               label=fuel)
+    # facet titles: clean any leading "=..." and apply your editable labels
+    title_map = {
+        "HighIncome": HIGH_INCOME_TITLE,
+        "MiddleIncome": MIDDLE_INCOME_TITLE,
+        "LowIncome":  LOW_INCOME_TITLE,
+    }
+    for ann in fig.layout.annotations:
+        if not isinstance(ann.text, str):
+            continue
+        t = ann.text
+        # Plotly may give "Income_pretty=High Income" or "=High Income" or "High Income"
+        t = t.split("=", 1)[-1].strip().lstrip("=").strip()
 
-        bottoms += vals
+        if t in ("High Income", "HighIncome"):
+            ann.text = title_map["HighIncome"]
+        elif t in ("Middle Income", "MiddleIncome"):
+            ann.text = title_map["MiddleIncome"]
+        elif t in ("Low Income", "LowIncome"):
+            ann.text = title_map["LowIncome"]
 
-        # Optional internal labels for share panel
-        if value_col == "share" and label_threshold is not None:
-            mids = bottoms - vals / 2.0
-            for xi, v, mid in zip(x_all, vals, mids):
-                if v >= label_threshold:
-                    ax.text(xi, mid, f"{v*100:.0f}%", ha="center", va="center",
-                            fontsize=BAR_LABEL_FONTSIZE, color="black")
+        ann.font.size = FACET_TITLE_SIZE  # match y-axis title size
+        # NOTE: don't move ann.y — leaving default keeps titles visible
 
-    ax.set_xticks(x_all)
-    ax.set_xticklabels(year_labels, rotation=XTICK_ROTATION, ha="right", fontsize=TICK_FONTSIZE)
-    ax.set_ylabel(ylabel, fontsize=AXIS_LABEL_FONTSIZE)
-    ax.tick_params(axis="y", labelsize=TICK_FONTSIZE)
-    if ylim:
-        ax.set_ylim(*ylim)
-    ax.grid(axis="y", linestyle="-", alpha=0.15)
 
-    # Income headings above groups
-    y_top = ax.get_ylim()[1]
-    for inc, cx in zip(ORDER_INCOME, centers):
-        ax.text(cx, y_top * 1.01, inc, ha="center", va="bottom", fontsize=TICK_FONTSIZE)
 
-def main():
-    df_raw = pd.read_csv(DATA_PATH, encoding="utf-8")
-    df, abs_ymax = _prep(df_raw)
+    fig.update_traces(cliponaxis=True)
 
-    fig, (ax_top, ax_bot) = plt.subplots(
-        2, 1, figsize=(16, 9), constrained_layout=True, sharex=True
-    )
+    if dev_mode:
+        print("👩‍💻 dev_mode ON — preview only (no files written)")
+        return
 
-    # Top: absolute PJ
-    _plot_stacked(ax_top, df, value_col="PJ", ylabel=ABS_YLABEL, ylim=(0, abs_ymax))
+    # ── save + copy to gallery ──────────────────────────────────────
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Bottom: shares
-    _plot_stacked(ax_bot, df, value_col="share", ylabel=SHARE_YLABEL,
-                  ylim=(0, 1.0001), label_threshold=0.04)
-    ax_bot.set_yticks(np.linspace(0, 1, 6))
-    ax_bot.set_yticklabels([f"{int(t*100)}%" for t in np.linspace(0, 1, 6)],
-                           fontsize=TICK_FONTSIZE)
+    base_name = "fig4_25_residential_energy_by_income_pj"
+    save_figures(fig, output_dir, name=base_name)
 
-    # Tidy spines
-    for ax in (ax_top, ax_bot):
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
+    df_out = df.rename(columns={"Fuel_canon": "Fuel", "Income_pretty": "Income", "Year_cat": "Year"})
+    df_out["Year"] = df_out["Year"].astype(str)
+    df_out.to_csv(out_dir / f"{base_name}_data.csv", index=False)
 
-    # Legend (right side)
-    handles, labels = ax_top.get_legend_handles_labels()
-    ax_top.legend(handles, labels, loc="center left", bbox_to_anchor=(1.02, 0.5),
-                  frameon=False, fontsize=LEGEND_FONTSIZE, title=None)
-
-    save_with_gallery(fig)
-    plt.close(fig)
+    gallery_dir = project_root / "outputs" / "gallery"
+    gallery_dir.mkdir(parents=True, exist_ok=True)
+    src_img = out_dir / f"{base_name}_report.png"
+    if src_img.exists():
+        shutil.copy2(src_img, gallery_dir / src_img.name)
 
 if __name__ == "__main__":
-    main()
+    data_path = project_root / "data" / "processed" / "4_25_residential_energy_consump_by_income_cat_bar.csv"
+    if not data_path.exists():
+        raise FileNotFoundError(
+            f"Data file not found at {data_path}.\n"
+            "Expected columns: 'Commodity Short Description', 'Subsector', 'Year', 'SATIMGE'."
+        )
+    df = pd.read_csv(data_path)
+    out = project_root / "outputs" / "charts_and_data" / "fig4_25_residential_energy_by_income_pj"
+    out.mkdir(parents=True, exist_ok=True)
+    generate_fig4_25_residential_energy_by_income_pj(df, str(out))
