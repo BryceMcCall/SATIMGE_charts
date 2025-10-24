@@ -28,12 +28,12 @@ from charts.common.save import save_figures
 
 FUEL_TO_CANON = {
     "Electricity": "Electricity",
-    "Paraffin":    "Kerosene/Jet",
+    "Paraffin":    "Kerosene",
     "Gas":         "Natural Gas",
-    "Wood":        "Wood/Wood Waste",
+    "Biowood":        "Biowood",
     "Coal":        "Coal",
 }
-FUELS = ["Electricity", "Paraffin", "Gas", "Wood", "Coal"]
+FUELS = ["Electricity", "Paraffin", "Gas", "Biowood", "Coal"]
 INCOME_ORDER  = ["L", "M", "H"]
 INCOME_LABELS = {"L": "Low income", "M": "Middle income", "H": "High income"}
 SERVICE_ORDER = ["Lighting", "Cooking", "Heating", "Water heating", "Refrigeration", "Other"]

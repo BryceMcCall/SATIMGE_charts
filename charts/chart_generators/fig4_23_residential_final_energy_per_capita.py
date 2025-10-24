@@ -31,12 +31,12 @@ from charts.common.save import save_figures
 # Map display labels to canonical palette keys (shared across the project)
 FUEL_TO_CANON = {
     "Electricity": "Electricity",
-    "Paraffin":    "Kerosene/Jet",
+    "Paraffin":    "Kerosene",
     "Gas":         "Natural Gas",
-    "Wood":        "Wood/Wood Waste",
+    "Biowood":        "Biowood",
     "Coal":        "Coal",
 }
-STACK_ORDER = ["Electricity", "Paraffin", "Gas", "Wood", "Coal"]  # bottom → top
+STACK_ORDER = ["Electricity", "Paraffin", "Gas", "Biowood", "Coal"]  # bottom → top
 
 
 def _load_data() -> pd.DataFrame:
@@ -62,7 +62,7 @@ def _load_data() -> pd.DataFrame:
         "Electricity": [1.382092571, 2.475388670, 6.840282213],
         "Paraffin":    [0.217569996, 0.224525641, 0.009334124],
         "Gas":         [0.120505032, 0.345676364, 0.662756547],
-        "Wood":        [2.143612712, 1.568836142, 0.091731238],
+        "Biowood":        [2.143612712, 1.568836142, 0.091731238],
         "Coal":        [0.260245266, 0.441064903, 0.092156952],
     })
 

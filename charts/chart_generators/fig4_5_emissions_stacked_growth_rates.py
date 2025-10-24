@@ -48,16 +48,31 @@ CAT_ORDER = [
     "H.Waste",
     "G.Land",
 ]
+
 COLOR_MAP = {
-    "A.Electricity": "#1f77b4",
-    "B.Liquid fuels supply": "#17becf",
-    "C.Industry (combustion and process)": "#ff7f0e",
-    "D.Transport": "#d62728",
-    "E.Other energy": "#9ecae1",
-    "F.Agriculture (non-energy)": "#2ca02c",
-    "G.Land": "#9467bd",
-    "H.Waste": "#8c564b",
+    "A.Electricity": "#2F4858",  # deep blue-slate
+    "B.Liquid fuels supply": "#33658A",  # steel blue
+    "C.Industry (combustion and process)": "#F6AE2D",  # amber
+    "D.Transport": "#F26419",  # orange
+    "E.Other energy": "#86BBD8",  # sky
+    "F.Agriculture (non-energy)": "#5A8FB8",  # mid-sky (derived)
+    "H.Waste": "#8FA3B8",  # cool slate (derived)
+    "G.Land": "#BFD7EA",  # pale sky (top-friendly)
 }
+
+
+# fallback tableau 10 colors, reordered to match CAT_ORDER
+# COLOR_MAP = {
+#     "A.Electricity":                    "#4E79A7",  # deep blue
+#     "B.Liquid fuels supply":            "#76B7B2",  # teal
+#     "C.Industry (combustion and process)": "#59A14F",  # green
+#     "D.Transport":                      "#EDC948",  # warm gold
+#     "E.Other energy":                   "#F28E2B",  # copper/orange
+#     "F.Agriculture (non-energy)":       "#E15759",  # red-coral
+#     "G.Land":                           "#B07AA1",  # violet
+#     "H.Waste":                          "#9C755F",  # brown
+# }
+
 X_ORDER = ["Low growth", "Ref growth", "High growth"]
 YEAR_ORDER = [2024, 2030, 2035]
 

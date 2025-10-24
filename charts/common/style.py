@@ -24,6 +24,7 @@ FUEL_COLORS = {
     "Coal":           "#505457",  # dark grey/black
     "Oil":            "#A0522D",  # brown (sienna)
     "Natural Gas":    "#D62728",  # red
+    "Gas":            "#D62728",  # red
     "Nuclear":        "#D765C0",  # light pink
     "Hydro":          "#1E90FF",  # medium blue
     "Pumped Storage": "#3232F3",  # dark blue
@@ -34,12 +35,13 @@ FUEL_COLORS = {
     "Solar PV":       "#FFD700",  # golden yellow
     "Solar CSP":      "#FF7F0E",  # orange
     "Imports":        "#8C564B",  # muted brown
-    "Other":          "#E377C2",  # magenta
+    "Kerosene":       "#1F77B4",  # Dodgerblue
+    "Paraffin":       "#1F77B4",  # Dodgerblue
 
     # Additional techs retained from previous palette
     "Diesel":           "#8B5E34",
     "Gasoline":         "#C97C28",
-    "Kerosene/Jet":     "#A1662F",
+    "HFO":              "#7B4173",
     "LPG":              "#FF9F1C",
     "Syngas":           "#4F81BD",
     "Hydrogen":         "#00AEEF",
@@ -110,7 +112,7 @@ FUEL_ALIASES = {
     "BATTERY": "Battery", "STORAGE": "Battery",
     "PUMPED": "Pumped Storage", "PUMPED STORAGE": "Pumped Storage",
     "ELECTRIC": "Electricity", "ELECTRICITY": "Electricity",
-    "KEROSENE": "Kerosene/Jet", "JET": "Kerosene/Jet",
+    "KEROSENE": "Kerosene", "JET": "Kerosene/Jet",
     "OIL": "Oil",
     "IMPORTS": "Imports", "EIMPORTS": "Imports",
     "AUTOGEN-CHEMICAL": "AutoGen-Chemical", "HYBRID": "Hybrid",
@@ -118,7 +120,7 @@ FUEL_ALIASES = {
     "ECOAL": "Coal", "ENUCLEAR": "Nuclear", "EHYDRO": "Hydro", "EWIND": "Wind",
     "EPV": "Solar PV", "ECSP": "Solar CSP", "EBIOMASS": "Biomass",
     "EBIOETHANOL": "Bioethanol", "EGAS": "Natural Gas", "EDIESEL": "Diesel",
-    "EGASOLINE": "Gasoline", "EKEROSENE": "Kerosene/Jet", "EOIL": "Oil",
+    "EGASOLINE": "Gasoline", "EKEROSENE": "Kerosene", "EOIL": "Oil",
     "EBATTERY": "Battery", "ESTORAGE": "Battery",
     "EPUMPED": "Pumped Storage", "EPUMPEDSTORAGE": "Pumped Storage",
     "EHYBRID": "Hybrid",
