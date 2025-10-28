@@ -13,6 +13,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from charts.common.style import apply_common_layout, FALLBACK_CYCLE
 from charts.common.save import save_figures
+from charts.common.style import apply_square_legend  # top
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = PROJECT_ROOT / "config.yaml"
@@ -32,8 +33,8 @@ def color_for(label: str, i: int) -> str:
 
 # ───────────── Layout knobs ─────────────
 LEGEND_POSITION   = "right"   # "right" | "bottom"
-AXIS_TITLE_SIZE   = 20
-AXIS_TICK_SIZE    = 17
+AXIS_TITLE_SIZE   = 22
+AXIS_TICK_SIZE    = 20
 LEGEND_FONT_SIZE  = AXIS_TITLE_SIZE
 
 # End-marker policy (you asked for no dots here)
@@ -82,7 +83,7 @@ def _canonical_group(value: str) -> str:
 DISPLAY_LABEL = {
     "WEM":                "WEM",
     "CPP4":               "CPP4",
-    "BELOW_300_BUNDLE":   "Scenarios below 300MtCO₂-eq",
+    "BELOW_300_BUNDLE":   "Scenarios below<br>300MtCO₂-eq",
 }
 
 # ───────────── Generator ─────────────
@@ -131,24 +132,27 @@ def generate_fig4_4_emissions_under_300mt_lines(df: pd.DataFrame, output_dir: st
         color="Legend", line_group="Scenario",
         color_discrete_map=colors,
         category_orders={"Legend": legend_labels_order},
-        labels={"Year": "", "MtCO2-eq": "MtCO₂-eq", "Legend": ""},
+        labels={"Year": "", "MtCO2-eq": "CO₂-eq Emissions (Mt)", "Legend": ""},
         title=None,
     )
 
     # Styling (minor ticks + minor grids)
     fig = apply_common_layout(fig)
     _apply_legend(fig)
+    apply_square_legend(fig, order=legend_labels_order, size=18)
+    #fig.update_traces(line=dict(width=3.0), selector=dict(mode="lines"))
+
     fig.update_xaxes(
         range=[2024, 2035 + 0.03],
         tickmode="linear", tick0=2024, dtick=1,
-        ticks="outside", showgrid=True,
+        ticks="outside", showgrid=True, tickangle=-45,
         minor=dict(ticks="outside", dtick=0.5, showgrid=True),
         title_font=dict(size=AXIS_TITLE_SIZE), tickfont=dict(size=AXIS_TICK_SIZE),
     )
     fig.update_yaxes(
         ticks="outside", showgrid=True,
         minor=dict(ticks="outside", dtick=10, showgrid=True),
-        title="MtCO₂-eq",
+        title="CO₂-eq Emissions (Mt)",
         title_font=dict(size=AXIS_TITLE_SIZE), tickfont=dict(size=AXIS_TICK_SIZE),
     )
     fig.add_vline(x=2035, line_dash="dot", line_width=1, line_color="rgba(0,0,0,0.25)")

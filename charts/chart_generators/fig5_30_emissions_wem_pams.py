@@ -14,6 +14,7 @@ if __name__ == "__main__" and __package__ is None:
 # Shared helpers
 from charts.common.style import apply_common_layout, FALLBACK_CYCLE
 from charts.common.save import save_figures
+from charts.common.style import apply_square_legend  # top
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = PROJECT_ROOT / "config.yaml"
@@ -57,9 +58,9 @@ def _nice_label(raw: str) -> str:
     return mapping.get(s, f"WEM + {s}" if s and s != "RG" else "WEM")
 
 def _apply_legend(fig):
-    if LEGEND_POSITION == "bottom":
+    if LEGEND_POSITION == "right":
         fig.update_layout(
-            margin=dict(l=70, r=40, t=10, b=110),  # no title → small top margin
+            margin=dict(l=70, r=160, t=10, b=110),  # no title → small top margin
             legend=dict(
                 orientation="h",
                 yanchor="bottom", y=-0.22,
@@ -106,13 +107,14 @@ def generate_fig5_30_emissions_wem_pams(df: pd.DataFrame, output_dir: str) -> No
 
     fig = apply_common_layout(fig)
     _apply_legend(fig)
+    apply_square_legend(fig, order=ordered_labels, size=18)
 
     # Axis + minor ticks + guide
     X_PAD = 0.15
     fig.update_xaxes(range=[2024, 2035 + X_PAD],
-                     title_text="Year", tickmode="linear", tick0=2024, dtick=1,
-                     ticks="outside", minor=dict(ticks="outside", dtick=0.5))
-    fig.update_yaxes(title_text="MtCO₂-eq", ticks="outside",
+                     title_text="", tickmode="linear", tick0=2024, dtick=1,
+                     ticks="outside", minor=dict(ticks="outside", dtick=0.5),tickangle=-45)
+    fig.update_yaxes(title_text="CO₂-eq Emissions (Mt)", ticks="outside",
                      minor=dict(ticks="outside", dtick=5))
     fig.add_vline(x=2035, line_dash="dot", line_width=1, line_color="rgba(0,0,0,0.25)")
 
@@ -128,6 +130,15 @@ def generate_fig5_30_emissions_wem_pams(df: pd.DataFrame, output_dir: str) -> No
             showlegend=False,
             hovertemplate=f"{r['ScenarioLabel']}<br>{int(r['Year'])}: {r['MtCO2-eq']:.1f} MtCO₂-eq<extra></extra>",
         )
+
+        # Ensure Plotly knows the category order for the color field
+    #category_col = SERIES_COL  # <-- whatever column you pass to color= in px.line
+    fig.update_layout(legend=dict(traceorder="normal"))
+    fig.update_traces(showlegend=False)  # real traces hidden; legend uses squares below
+
+    # Use your existing order list
+    apply_square_legend(fig, order=ordered_labels, size=18)
+
 
     out = Path(output_dir)
     if DEV_MODE:

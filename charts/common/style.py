@@ -335,3 +335,64 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
     )
 
     return fig
+
+import plotly.graph_objects as go
+
+def _first_color(val):
+    """Return a single color string from a value that might be a scalar, list, or None."""
+    if val is None:
+        return None
+    if isinstance(val, (list, tuple)) and val:
+        return val[0]
+    return val
+
+def apply_square_legend(fig: go.Figure, order: list[str] | None = None, size: int = 18) -> go.Figure:
+    """
+    Show big square color swatches in the legend while keeping real line traces.
+    Hides legends on real traces and adds one legend-only square marker per series,
+    grouped so clicking the square toggles the corresponding line(s).
+    """
+    # 1) Collect colors from existing traces by name
+    name_to_color = {}
+    for tr in fig.data:
+        nm = getattr(tr, "name", None)
+        if not nm:
+            continue
+        col = None
+        # line.color if available
+        if hasattr(tr, "line") and tr.line is not None and hasattr(tr.line, "color"):
+            col = _first_color(tr.line.color)
+        # else marker.color if available
+        if col is None and hasattr(tr, "marker") and tr.marker is not None and hasattr(tr.marker, "color"):
+            col = _first_color(tr.marker.color)
+        if col:
+            name_to_color[nm] = col
+
+    # 2) Decide legend order
+    if order is None:
+        order = [tr.name for tr in fig.data if getattr(tr, "name", None) in name_to_color]
+
+    # 3) Hide legends on real traces and assign legend groups
+    for tr in fig.data:
+        nm = getattr(tr, "name", None)
+        if not nm:
+            continue
+        tr.update(showlegend=False, legendgroup=nm, mode="lines")  # keep lines as lines
+
+    # 4) Add legend-only square markers (one per series)
+    for nm in order:
+        if nm not in name_to_color:
+            continue
+        fig.add_scatter(
+            x=[None], y=[None],
+            mode="markers",
+            name=nm,
+            legendgroup=nm,
+            showlegend=True,
+            hoverinfo="skip",
+            marker=dict(symbol="square", size=size, color=name_to_color[nm], line=dict(width=0)),
+        )
+
+    # 5) Keep normal ordering and group toggling
+    fig.update_layout(legend=dict(traceorder="normal"), legend_groupclick="togglegroup")
+    return fig

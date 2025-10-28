@@ -12,6 +12,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from charts.common.style import apply_common_layout, FALLBACK_CYCLE
 from charts.common.save import save_figures
+from charts.common.style import apply_square_legend
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEV_MODE = False
@@ -36,8 +37,8 @@ def color_for(label: str, i: int) -> str:
 
 # ───────────────── Layout knobs ─────────────────
 LEGEND_POSITION = "right"         # "right" | "bottom"
-AXIS_TITLE_SIZE = 20
-AXIS_TICK_SIZE  = 17
+AXIS_TITLE_SIZE = 22
+AXIS_TICK_SIZE  = 20
 LEGEND_FONT_SIZE = AXIS_TITLE_SIZE
 
 # ───────────────── Label map ────────────────────
@@ -88,9 +89,45 @@ def generate_fig5_2_1_wem_sarem_irp_lines(df: pd.DataFrame, output_dir: str) -> 
     keep = ["WEM", "WEM + SAREM", "WEM + IRP Full", "WEM + IRP Light"]
     df = df[df["ScenarioLabel"].isin(keep)].copy()
 
-    # Legend order: (alternatives first) + WEM
-    ordered = [x for x in keep if x in df["ScenarioLabel"].unique().tolist()]
-    ordered = [x for x in ordered if x != "WEM"] + (["WEM"] if "WEM" in ordered else [])
+
+    # Compute legend order by how lines appear at the right edge (max year)
+    def _order_by_right_edge(d: pd.DataFrame, series_col: str, x_col: str, y_col: str, high_first: bool = True) -> list[str]:
+        last_x = d[x_col].max()
+        def last_y(g: pd.DataFrame) -> float:
+            gx = g.sort_values(x_col)
+            # if the last_x exists for this group, take that; else take the last available y
+            if (gx[x_col] == last_x).any():
+                return gx.loc[gx[x_col] == last_x, y_col].iloc[0]
+            return gx[y_col].iloc[-1]
+        y_end = (d.groupby(series_col, group_keys=False)
+                .apply(last_y)
+                .rename("y_end"))
+        y_sorted = y_end.sort_values(ascending=not high_first)
+        return y_sorted.index.tolist()
+
+    # Build legend order strictly as lines appear on the chart's right edge
+    def _order_by_right_edge(d: pd.DataFrame, series_col: str, x_col: str, y_col: str, high_first: bool = True) -> list[str]:
+        last_x = d[x_col].max()
+
+        # take the value at the last_x if present; otherwise the last available
+        def last_y(g: pd.DataFrame) -> float:
+            gx = g.sort_values(x_col)
+            if (gx[x_col] == last_x).any():
+                return float(gx.loc[gx[x_col] == last_x, y_col].iloc[0])
+            return float(gx[y_col].iloc[-1])
+
+        # compute end values and sort (optionally tie-break by name for stability)
+        y_end = (d.groupby(series_col, group_keys=True)
+                .apply(last_y)
+                .rename("y_end"))
+        # stable sort: primary by y_end, secondary by name
+        ordered_idx = y_end.sort_values(ascending=not high_first, kind="mergesort").index.tolist()
+        return ordered_idx
+
+    # ✅ Use the actual column names in this file
+    ordered = _order_by_right_edge(df, series_col="ScenarioLabel", x_col="Year", y_col="MtCO2-eq", high_first=True)
+
+
     color_map = {lab: color_for(lab, i) for i, lab in enumerate(ordered)}
 
     fig = px.line(
@@ -106,17 +143,19 @@ def generate_fig5_2_1_wem_sarem_irp_lines(df: pd.DataFrame, output_dir: str) -> 
     # Style block
     fig = apply_common_layout(fig)
     _apply_legend(fig)
+    apply_square_legend(fig, order=ordered, size=18)
     fig.update_xaxes(
         range=[2024, 2035 + 0.03],
         tickmode="linear", tick0=2024, dtick=1,
-        ticks="outside", minor=dict(ticks="outside", dtick=0.5),
+        ticks="outside", minor=dict(ticks="outside", dtick=0.5), tickangle=-45,
         title_font=dict(size=AXIS_TITLE_SIZE), tickfont=dict(size=AXIS_TICK_SIZE),
     )
     fig.update_yaxes(
         ticks="outside", minor=dict(ticks="outside", dtick=5),
-        title="Emissions (MtCO₂-eq)",
+        title="CO₂-eq Emissions (Mt)",
         title_font=dict(size=AXIS_TITLE_SIZE), tickfont=dict(size=AXIS_TICK_SIZE),
     )
+    fig.update_traces(line=dict(width=3.2), selector=dict(mode="lines"))
     fig.add_vline(x=2035, line_dash="dot", line_width=1, line_color="rgba(0,0,0,0.25)")
 
     # End dots with matching colors

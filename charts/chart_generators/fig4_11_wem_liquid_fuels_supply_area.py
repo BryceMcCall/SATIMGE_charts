@@ -21,6 +21,7 @@ if str(project_root) not in sys.path:
 
 from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
+from charts.common.style import apply_square_legend 
 
 config_path = project_root / "config.yaml"
 if config_path.exists():
@@ -86,6 +87,11 @@ def generate_fig4_11_wem_liquid_fuels_supply_area(df: pd.DataFrame, output_dir: 
             dtick=100,  # major ticks every 100
         ),
     )
+        # Use square legend entries, ordered as in TECHS
+    fig.update_layout(legend=dict(traceorder="normal"))
+    # (apply_square_legend hides the real trace legends and adds square swatches)
+    apply_square_legend(fig, order=TECHS, size=18)
+
 
     # x-axis labels at -45°
     fig.update_xaxes(

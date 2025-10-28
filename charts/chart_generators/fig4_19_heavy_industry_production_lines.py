@@ -15,6 +15,7 @@ if str(project_root) not in sys.path:
 
 from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
+from charts.common.style import apply_square_legend 
 
 config_path = project_root / "config.yaml"
 if config_path.exists():
@@ -30,7 +31,7 @@ SCEN_COL = "Scenario"
 YEAR_COL = "Year"
 VAL_COL  = "SATIMGE"
 
-ORDER = ["Aluminium", "Cement", "FerroChrome Metal", "Paper and Pulp", "Steel"]
+ORDER = ["Cement","Steel", "Paper and Pulp", "FerroChrome Metal", "Aluminium"]
 COLOR_MAP = {
     "Aluminium":        "#BFD5EA",
     "Cement":           "#3A6EA5",
@@ -86,11 +87,18 @@ def generate_fig4_19_heavy_industry_production_lines(df: pd.DataFrame, output_di
             y=1.0,
             xanchor="left",
             x=1.02,
-            font=dict(size=21)  
+            font=dict(size=21),
+            itemsizing="constant",  
         ),
         margin=dict(l=70, r=180, t=20, b=60),
         yaxis=dict(title=dict(text="Production (million tonnes)", font=dict(size=22))),
     )
+
+        # Use square legend entries, ordered as in ORDER
+    fig.update_layout(legend=dict(traceorder="normal"))
+    fig.update_traces(showlegend=False)           # hide real line entries
+    apply_square_legend(fig, order=ORDER, size=18)
+
 
     # Slightly thicker lines
     for tr in fig.data:

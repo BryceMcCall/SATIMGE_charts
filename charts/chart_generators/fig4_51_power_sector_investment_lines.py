@@ -23,6 +23,7 @@ if str(project_root) not in sys.path:
 
 from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
+from charts.common.style import apply_square_legend 
 
 # ── config ──────────────────────────────────────────────────────────
 config_path = project_root / "config.yaml"
@@ -136,9 +137,15 @@ def generate_fig4_51_power_sector_investment_lines(df: pd.DataFrame, output_dir:
             x=1.02,
             font=dict(size=20) 
         ),
-        margin=dict(l=70, r=180, t=20, b=90),
-        yaxis=dict(title=dict(text="Cumulative investment in power sector (Billion ZAR)", font=dict(size=22))),
+        margin=dict(l=110, r=180, t=20, b=90),
+        yaxis=dict(title=dict(text="Cumulative investment in the power sector (Billion ZAR)", font=dict(size=22))),
     )
+
+    # Replace default legend entries with big square swatches in our desired order
+    fig.update_layout(legend=dict(traceorder="normal"))
+    fig.update_traces(showlegend=False)  # hide real traces in legend
+    apply_square_legend(fig, order=LEGEND_ORDER, size=18)
+
 
     # Styling: thin lines, mild opacity
     for tr in fig.data:
