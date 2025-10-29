@@ -79,6 +79,23 @@ COLOR_MAP = {
 
 BASE_FONT = 17  # legend, axis titles, tick labels
 
+# ── Scenario family → display name
+FAMILY_NAMES = {
+    "BASE":  "WEM",
+    "CPP1":  "CPP-IRP",
+    "CPP2":  "CPP-IRPLight",
+    "CPP3":  "CPP-SAREM",
+    "CPP4":  "CPPS",
+    "LCARB": "Low carbon",
+    "HCARB": "High carbon",
+}
+
+# Optional manual one-offs (raw or auto label → desired)
+MANUAL_SCENARIO_LABELS: dict[str, str] = {
+    # "NDC_BASE-085-NZ-RG": "WEM · Net Zero (8.5 Gt budget)",
+}
+
+
 # ───────────────────────── helpers ─────────────────────────
 def _parse_budget_gt(s: str) -> str | None:
     """
@@ -108,53 +125,60 @@ def _family_from_run(s: str) -> str:
         return "Low-carbon"
     return "Scenario"
 
-def pretty_label(run: str) -> str:
-    """
-    Human-friendly axis label:
-        <Family> [· <Variant> …] [(<Budget in Gt budget>)]
-    Keeps CPP number. Adds 'Net Zero 2050' / 'Net Zero 2055' (or 'Net Zero') when present.
-    Omits growth tags (RG/LG/HG).
-    """
-    s = run.upper()
-    fam = _family_from_run(s)
+import re
 
-    # -------- Variant flags (order: structural → policy → Net Zero → org-specific) --------
-    variants = []
+def pretty_label(raw: str) -> str:
+    s = str(raw)
 
-    # IRP flavouring by CPP number (adjust if your naming differs)
-    if "CPP3" in s and ("IRP" in s or "LIGHT" in s):
-        variants.append("IRP-Light")
-    elif "CPP4" in s and "IRP" in s:
-        variants.append("IRP 2024")
+    # Family detection (order matters a bit less; we look for _FAMILY)
+    fam = None
+    for k in FAMILY_NAMES.keys():
+        if f"_{k}" in s:
+            fam = k
+            break
+    fam_name = FAMILY_NAMES.get(fam, s)
 
-    # Policy packages / levers
-    if "SAREM" in s: variants.append("SAREM")
-    if re.search(r"\bEE\b", s): variants.append("EE")
-    if "TAX" in s: variants.append("Carbon tax")
-    if "TXP" in s or "TRANSPORT" in s: variants.append("Transport pkg")
+    # Budget token detection (longest-first to avoid partial matches)
+    budget_patterns = [
+        ("-105-", 10.5),
+        ("-095-", 9.5),
+        ("-0925-", 9.25),
+        ("-0875-", 8.75),
+        ("-085-", 8.5),
+        ("-0825-", 8.25),
+        ("-0775-", 7.75),
+        ("-075-", 7.5),
+        ("-10-", 10.0),
+        ("-09-", 9.0),
+        ("-08-", 8.0),
+    ]
+    budget = None
+    for pat, val in budget_patterns:
+        if pat in s:
+            budget = val
+            break
+    # Special case like CPP4-8-NZ-RG (single '8')
+    if budget is None and re.search(r"-8-(?:NZ-)?RG", s):
+        budget = 8.0
 
-    # Net Zero constraint (token “NZ” with optional year)
-    nz_token = bool(re.search(r'(^|[-_])NZ($|[-_])', s))
-    if nz_token:
-        if "2050" in s:
-            variants.append("Net Zero 2050")
-        elif "2055" in s:
-            variants.append("Net Zero 2055")
-        else:
-            variants.append("Net Zero")
+    # Net Zero?
+    is_nz = "-NZ-" in s.upper()
 
-    # Org-/sector-specific extras
-    if "SASOL" in s or "ERR" in s: variants.append("Sasol ERR")
-    if "AMSA" in s: variants.append("AMSA")
+    # Compose label
+    parts = [fam_name]
+    if is_nz:
+        parts.append("Net Zero")
+    label = " · ".join(parts)
+    if budget is not None:
+        label += f" ({budget:g} Gt budget)"
 
-    # Budget (GHG) → parentheses with context
-    bgt = _parse_budget_gt(s)  # e.g., "9.25 Gt budget" or None
+    # Allow manual overrides by raw or by the auto label
+    if raw in MANUAL_SCENARIO_LABELS:
+        return MANUAL_SCENARIO_LABELS[raw]
+    if label in MANUAL_SCENARIO_LABELS:
+        return MANUAL_SCENARIO_LABELS[label]
+    return label
 
-    # Assemble label: Family + optional variants + (Budget)
-    base = fam if not variants else (fam + " · " + " · ".join(variants))
-    if bgt:
-        base = f"{base} ({bgt})"
-    return base
 
 def _scenario_key_for_filter(s: str) -> str:
     s = s.upper()

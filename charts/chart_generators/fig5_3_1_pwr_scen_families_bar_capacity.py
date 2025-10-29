@@ -27,28 +27,29 @@ else:
 
 
 # ───────────────────────── Helper Mapping ─────────────────────────
-def _map_scen_family(scen: str) -> str:
-    """
-    Map SATIMGE scenario codes (e.g., NDC_CPP4-RG) → clean family names.
-    Ensures CPP4 appears as 'CPP4' not 'CPP4 Variant'.
-    """
-    s = str(scen).strip().upper()
+FAMILY_NAMES = {
+    "BASE":  "WEM",           # (BASE)
+    "CPP1":  "CPP-IRP",       # (CPP1)
+    "CPP2":  "CPP-IRPLight",  # (CPP2)
+    "CPP3":  "CPP-SAREM",     # (CPP3)
+    "CPP4":  "CPPS",          # (CPP4)
+    "LCARB": "Low carbon",    # (LCARB)
+    "HCARB": "High carbon",   # (HCARB)
+}
+FAMILY_ORDER = ["HCARB", "CPP4","BASE", "CPP2",  "CPP3","LCARB", "CPP1"]
 
-    if "HCARB" in s:
-        return "High Carbon"
-    if "CPP4" in s:
-        return "CPP4"
-    if "BASE" in s:
-        return "WEM"
-    if "CPP2" in s:
-        return "CPP2"
-    if "CPP3" in s:
-        return "CPP3"
-    if "LCARB" in s:
-        return "Low Carbon"
-    if "CPP1" in s:
-        return "CPP1"
+def _map_scen_family(scen: str) -> str:
+    s = str(scen).strip().upper()
+    for key, label in FAMILY_NAMES.items():
+        if f"_{key}" in s:
+            return label
     return "Other"
+
+def _enforce_category_order(df: pd.DataFrame, col: str, desired_order: list[str]) -> list[str]:
+    """Restrict/order categories to what's present in df[col], preserving desired_order."""
+    present = [x for x in desired_order if x in df[col].unique()]
+    df[col] = pd.Categorical(df[col], categories=present, ordered=True)
+    return present
 
 
 # ───────────────────────── Generator ─────────────────────────
@@ -79,11 +80,13 @@ def generate_fig5_3_1_pwr_scen_families_bar_capacity(df: pd.DataFrame, output_di
     # Apply robust family mapping
     df["ScenarioFamily"] = df["Scenario"].apply(_map_scen_family)
 
-    # Keep main families only
-    keep_families = [
-        "High Carbon", "CPP4", "WEM", "CPP2", "CPP3", "Low Carbon", "CPP1"
-    ]
+    # Keep only desired families (in your exact order)
+    keep_families = [FAMILY_NAMES[k] for k in FAMILY_ORDER]
     df = df[df["ScenarioFamily"].isin(keep_families)]
+
+  # Enforce order on the data itself (so bars render in this order)
+    scenario_order = _enforce_category_order(df, "ScenarioFamily", keep_families)
+
 
     # Build color map and stack order
     subsectors = df["Subsector"].unique()
@@ -96,8 +99,6 @@ def generate_fig5_3_1_pwr_scen_families_bar_capacity(df: pd.DataFrame, output_di
     ]
     stack_order = [s for s in stack_order if s in subsectors]
 
-    # Define exact x-axis order
-    scenario_order = [s for s in keep_families if s in df["ScenarioFamily"].unique()]
 
     # Plot
     fig = px.bar(
@@ -139,7 +140,9 @@ def generate_fig5_3_1_pwr_scen_families_bar_capacity(df: pd.DataFrame, output_di
 
     # Clean facet titles to show just year
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1], font=dict(size=21)))
-    fig.update_xaxes(tickangle=-90)
+    # Make sure axis uses the same order + rotate ticks
+    fig.update_xaxes(categoryorder="array", categoryarray=scenario_order, tickangle=-45, automargin=True)
+
 
     # Save chart + CSV
     if dev_mode:
