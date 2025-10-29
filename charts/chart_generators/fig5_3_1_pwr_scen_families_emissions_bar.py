@@ -26,28 +26,23 @@ else:
     dev_mode = False
 
 
-# ───────────────────────── Helper Mapping ─────────────────────────
-def _map_scen_family(scen: str) -> str:
-    """
-    Map SATIMGE scenario codes (e.g., NDC_CPP4-RG) → clean family names.
-    Enforces order consistency with capacity and generation charts.
-    """
-    s = str(scen).strip().upper()
+## ───────────────────────── Helper Mapping ─────────────────────────
+FAMILY_NAMES = {
+    "BASE":  "WEM",
+    "CPP1":  "CPP-IRP",
+    "CPP2":  "CPP-IRPLight",
+    "CPP3":  "CPP-SAREM",
+    "CPP4":  "CPPS",
+    "LCARB": "Low carbon",
+    "HCARB": "High carbon",
+}
+FAMILY_ORDER = ["HCARB", "CPP4","BASE", "CPP2", "CPP3", "LCARB", "CPP1"]
 
-    if "HCARB" in s:
-        return "High Carbon"
-    if "CPP4" in s:
-        return "CPP4"
-    if "BASE" in s:
-        return "WEM"
-    if "CPP2" in s:
-        return "CPP2"
-    if "CPP3" in s:
-        return "CPP3"
-    if "LCARB" in s:
-        return "Low Carbon"
-    if "CPP1" in s:
-        return "CPP1"
+def _map_scen_family(scen: str) -> str:
+    s = str(scen).strip().upper()
+    for key, label in FAMILY_NAMES.items():
+        if f"_{key}" in s:
+            return label
     return "Other"
 
 
@@ -80,8 +75,10 @@ def generate_fig5_3_3_pwr_scen_families_bar_emissions_mtco2eq(df: pd.DataFrame, 
     df["ScenarioFamily"] = df["Scenario"].apply(_map_scen_family)
 
     # Keep only desired families (same order as capacity/TWh)
-    keep_families = ["High Carbon", "CPP4", "WEM", "CPP2", "CPP3", "Low Carbon", "CPP1"]
+    keep_families = [FAMILY_NAMES[k] for k in FAMILY_ORDER]
     df = df[df["ScenarioFamily"].isin(keep_families)]
+    scenario_order = [f for f in keep_families if f in df["ScenarioFamily"].unique()]
+
 
     # Build color map and stack order
     subsectors = df["Subsector"].unique()
@@ -94,8 +91,6 @@ def generate_fig5_3_3_pwr_scen_families_bar_emissions_mtco2eq(df: pd.DataFrame, 
     ]
     stack_order = [s for s in stack_order if s in subsectors]
 
-    # Define exact x-axis order
-    scenario_order = [s for s in keep_families if s in df["ScenarioFamily"].unique()]
 
     # Plot
     fig = px.bar(
@@ -127,9 +122,9 @@ def generate_fig5_3_3_pwr_scen_families_bar_emissions_mtco2eq(df: pd.DataFrame, 
             x=1.02
         ),
         font=dict(size=14),
-        margin=dict(l=40, r=180, t=40, b=120),
+        margin=dict(l=100, r=180, t=40, b=120),
         yaxis=dict(
-            title=dict(text="Emissions (MtCO₂-eq)", font=dict(size=25)),
+            title=dict(text="CO₂-eq Emissions (Mt)", font=dict(size=25)),
             dtick=20,             # major ticks every 20
             tick0=0,
             showgrid=True,
@@ -140,7 +135,7 @@ def generate_fig5_3_3_pwr_scen_families_bar_emissions_mtco2eq(df: pd.DataFrame, 
                 ticks="outside",
                 showgrid=True,
                 gridcolor="rgba(0,0,0,0.05)",
-                dtick=10           # minor gridlines every 10 MtCO₂-eq
+                dtick=5           # minor gridlines every 5 MtCO₂-eq
             ),
         ),
         bargap=0.45
@@ -148,7 +143,7 @@ def generate_fig5_3_3_pwr_scen_families_bar_emissions_mtco2eq(df: pd.DataFrame, 
 
     # Clean facet titles to show just year
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1], font=dict(size=21)))
-    fig.update_xaxes(tickangle=-90)
+    fig.update_xaxes(tickangle=-45)
 
     # Save chart + CSV
     if dev_mode:

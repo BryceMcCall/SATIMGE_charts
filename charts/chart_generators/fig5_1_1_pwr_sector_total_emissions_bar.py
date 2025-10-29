@@ -77,7 +77,8 @@ def generate_fig5_3_sectoral_vs_wem_difference_emissions_bar_final_v7(df: pd.Dat
         y="Diff_MtCO2",
         color="IPCC_Category",
         facet_col="Scenario",
-        facet_col_wrap=len(scenario_order),
+        facet_col_wrap=df["Scenario"].nunique(),   # <-- forces a single row
+        facet_col_spacing=0.02, 
         category_orders={"Sector": sector_order, "Scenario": scenario_order},
         color_discrete_map=ipcc_colors,
         barmode="group",
@@ -89,13 +90,13 @@ def generate_fig5_3_sectoral_vs_wem_difference_emissions_bar_final_v7(df: pd.Dat
     fig.update_layout(
         title="",
         bargap=0.25,
-        margin=dict(l=110, r=60, t=40, b=220),
-        width=1600,
+        margin=dict(l=60, r=60, t=40, b=220),
+        width=2600,
         height=700,
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=-0.55,
+            y=-0.60,
             xanchor="center",
             x=0.5,
             font=dict(size=18),
@@ -109,6 +110,7 @@ def generate_fig5_3_sectoral_vs_wem_difference_emissions_bar_final_v7(df: pd.Dat
         zeroline=True,
         zerolinecolor="black",
         zerolinewidth=1.3,
+        tickfont=dict(size=18),
         minor=dict(
             ticks="outside",
             showgrid=True,
@@ -120,7 +122,7 @@ def generate_fig5_3_sectoral_vs_wem_difference_emissions_bar_final_v7(df: pd.Dat
     # ── X-axis (rotated labels)
     fig.update_xaxes(
         tickangle=-90,
-        tickfont=dict(size=15),
+        tickfont=dict(size=18),
         title_standoff=10
     )
 
@@ -145,7 +147,7 @@ def generate_fig5_3_sectoral_vs_wem_difference_emissions_bar_final_v7(df: pd.Dat
     for anno in fig.layout.annotations:
         if "Scenario=" in anno.text:
             anno.text = anno.text.replace("Scenario=", "").replace("carbon", "Carbon")
-            anno.font.size = 18
+            anno.font.size = 16
             anno.y += 0.02
 
     fig.update_traces(marker_line_width=0.3, marker_line_color="white")
