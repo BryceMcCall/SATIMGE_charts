@@ -96,7 +96,12 @@ def generate_fig5_2_1_pwr_scen_families_bar_emissions_mtco2eq(df: pd.DataFrame, 
     # Define exact x-axis order based on what appears in the data (but preserving your order)
     scenario_order = [f for f in keep_families if f in df["ScenarioFamily"].unique()]
 
-    # Plot
+    # Ensure facet order: 2024, 2030, 2035
+    year_order = [2024, 2030, 2035]
+    df = df[df["Year"].isin(year_order)].copy()
+    df["Year"] = pd.Categorical(df["Year"].astype(int), categories=year_order, ordered=True)
+
+
     fig = px.bar(
         df,
         x="ScenarioFamily",
@@ -106,12 +111,14 @@ def generate_fig5_2_1_pwr_scen_families_bar_emissions_mtco2eq(df: pd.DataFrame, 
         facet_col_wrap=3,
         barmode="stack",
         category_orders={
+            "Year": year_order,               # 👈 facet order
             "ScenarioFamily": scenario_order,
             "Subsector": stack_order,
         },
         color_discrete_map=color_map,
-        labels={"MtCO2-eq": "Emissions (MtCO₂-eq)", "ScenarioFamily": ""},
+        labels={"MtCO2-eq": "CO₂-eq Emissions (Mt)", "ScenarioFamily": ""},
     )
+
 
     # Apply shared style
     fig = apply_common_layout(fig)
