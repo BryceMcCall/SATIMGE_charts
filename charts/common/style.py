@@ -37,6 +37,7 @@ FUEL_COLORS = {
     "Imports":        "#8C564B",  # muted brown
     "Kerosene":       "#1F77B4",  # Dodgerblue
     "Paraffin":       "#1F77B4",  # Dodgerblue
+    "Coke":            "#023047",  # Dodgerblue
 
     # Additional techs retained from previous palette
     "Diesel":           "#8B5E34",
@@ -66,7 +67,7 @@ SECTOR_COLORS = {
     "Buildings":    "#1B998B",
     "Agriculture":  "#7CB342",
     "AFOLU":        "#7CB342",
-    "Waste":        "#616161",
+    "Waste":        "#A1887F",
     "Mining":       "#A1887F",
     "Other Energy": "#BCBD22",
     "Refineries":   "#FF7F0E",
