@@ -57,7 +57,7 @@ def generate_fig5_2_1_irp_light_twh(df: pd.DataFrame, output_dir: str) -> None:
         if scen == "NDC_BASE-RG":
             return "WEM"
         elif scen == "NDC_BASE-IRPLight-RG":
-            return "WEM-IRP Lite"
+            return "WEM-IRP Light"
         else:
             return map_scenario_key(scen)
 

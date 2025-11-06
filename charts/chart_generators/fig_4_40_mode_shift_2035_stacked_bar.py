@@ -42,8 +42,8 @@ X_TICK_ANGLE = 0
 # NEW: optional renaming of scenario tick labels
 XTICK_RENAME = {
     "NDC_BASE-RG": "WEM",
-    "NDC_BASE-PassM-RG": "WEM with Passenger<br>Modeshifting",
-    "NDC_BASE-FreiM-RG": "WEM with Freight<br>Modeshifting",
+    "NDC_BASE-PassM-RG": "WEM + Passenger<br>Modal shift",
+    "NDC_BASE-FreiM-RG": "WEM + Freight<br>Modal shift",
 }
 
 # Keep colours EXACT
@@ -54,8 +54,8 @@ PAX_COLORS = {
     "PassengerRail": "#ea9daa",
 }
 FREIGHT_COLORS = {
-    "Freight rail":  "#a678b4",
-    "Freight road":  "#d8b6d9",
+    "Freight rail":  "#d8b6d9",
+    "Freight road":  "#a678b4",
 }
 
 # RHS legend (with toggles)
@@ -123,7 +123,7 @@ def generate_fig_4_40_mode_shift(df: pd.DataFrame, output_dir: str) -> None:
         rows=1, cols=2,
         column_widths=[0.9, 0.9],
         horizontal_spacing=0.15,
-        subplot_titles=("Passenger Mode shifting", "Freight Mode shifting"),
+        subplot_titles=("Passenger Modal Shift", "Freight Modal Shift"),
         shared_yaxes=False,
     )
 
@@ -169,7 +169,7 @@ def generate_fig_4_40_mode_shift(df: pd.DataFrame, output_dir: str) -> None:
     fig.update_layout(
         title="",
         barmode="stack",
-        margin=dict(l=90, r=260, t=40, b=80),
+        margin=dict(l=90, r=460, t=40, b=80),
         legend=dict(**LEGEND_KW),
         width=1100, height=720,
     )

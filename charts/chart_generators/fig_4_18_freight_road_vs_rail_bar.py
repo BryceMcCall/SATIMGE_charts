@@ -32,8 +32,8 @@ DISPLAY_NAMES = {
 
 # Colors use the display keys
 COLORS = {
-    "Freight road": "#d8b6d9",
-    "Freight rail": "#a678b4",
+    "Freight road": "#a678b4",
+    "Freight rail": "#d8b6d9",
 }
 
 def generate_fig_4_18_freight(df: pd.DataFrame, output_dir: str) -> None:
@@ -90,7 +90,7 @@ def generate_fig_4_18_freight(df: pd.DataFrame, output_dir: str) -> None:
         legend_title_text="",
         barmode="stack",
         bargap=0.25,
-        margin=dict(l=70, r=220, t=20, b=80),
+        margin=dict(l=70, r=520, t=20, b=80),
         width=600, height=900,                   # ← 900x900
         legend=dict(                             # ← legend on the right
             orientation="v",
@@ -105,7 +105,8 @@ def generate_fig_4_18_freight(df: pd.DataFrame, output_dir: str) -> None:
     ymax = 1.08 * df.groupby("Year")["Value"].sum().max()
     fig.update_yaxes(title=Y_LABEL, 
                      range=[0, ymax],
-                     title_font=dict(size=22)  # ← y-axis LABEL size
+                     title_font=dict(size=22),
+                    minor=dict(dtick=10)
                      )
 
     out_dir = Path(output_dir); out_dir.mkdir(parents=True, exist_ok=True)
