@@ -29,6 +29,7 @@ FUEL_COLORS = {
     "Hydro":          "#1E90FF",  # medium blue
     "Pumped Storage": "#3232F3",  # dark blue
     "Battery":        "#90EE90",  # light green
+    "Battery Storage": "#4F81BD",  # light blue
     "Biomass":        "#2CA02C",  # green
     "Biowood":        "#2CA02C",  # green
     "Wind":           "#17BECF",  # teal/cyan

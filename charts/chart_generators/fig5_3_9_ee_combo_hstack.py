@@ -38,7 +38,7 @@ def _scenario_label(s: str) -> str:
     if s == "NDC_BASE-RG":
         return "WEM"
     if s in ("NDC_BASE-EE-RG", "NDC_BASE-EE"):
-        return "WEM-EE"
+        return "WEM + EE"
     return map_scenario_key(s)
 
 def _norm_fuel_group(label: str) -> str:
@@ -133,7 +133,7 @@ def generate_fig5_3_9_ee_combo_hstack(df_pj, df_twh, output_dir: str) -> None:
         color="Fuel",
         orientation="h",
         barmode="stack",
-        category_orders={"ScenarioLabel": ["WEM","WEM-EE"], "Fuel": fuel_order},
+        category_orders={"ScenarioLabel": ["WEM","WEM + EE"], "Fuel": fuel_order},
         color_discrete_map=fuel_colors,
         labels={pj_val: "PJ", "ScenarioLabel": ""},
         text="LabelText",  # ← now fuel + value
@@ -177,7 +177,7 @@ def generate_fig5_3_9_ee_combo_hstack(df_pj, df_twh, output_dir: str) -> None:
         color="EndUse",
         orientation="h",
         barmode="stack",
-        category_orders={"ScenarioLabel": ["WEM", "WEM-EE"], "EndUse": end_order},
+        category_orders={"ScenarioLabel": ["WEM", "WEM + EE"], "EndUse": end_order},
         color_discrete_map=SECTOR_COLOR_MAP,
         labels={twh_val: "TWh", "ScenarioLabel": ""},
         text=twh_val,
@@ -225,7 +225,7 @@ def generate_fig5_3_9_ee_combo_hstack(df_pj, df_twh, output_dir: str) -> None:
         font=dict(size=14),
     )
 
-    combo.update_yaxes(categoryorder="array", categoryarray=["WEM", "WEM-EE"], title_text="")
+    combo.update_yaxes(categoryorder="array", categoryarray=["WEM", "WEM + EE"], title_text="")
     combo.update_xaxes(title_text="", row=1, col=1, rangemode="normal")
     combo.update_xaxes(title_text="", row=2, col=1)
 
