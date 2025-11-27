@@ -82,6 +82,8 @@ def generate_fig4_8_pwr_capacity_bar_stacked(df: pd.DataFrame, output_dir: str) 
         df,
         x="Year",
         y="Capacity (GW)",
+        hover_data={"Subsector": True},
+        hover_name="Subsector",
         color="Subsector",
         barmode="stack",
         category_orders={"Year": years, "Subsector": seen_techs},
@@ -109,6 +111,11 @@ def generate_fig4_8_pwr_capacity_bar_stacked(df: pd.DataFrame, output_dir: str) 
 
     # minor grid on y-axis; adjust dtick to taste
     fig.update_yaxes(minor=dict(showgrid=True, ticks="outside", dtick=5))
+
+    fig.show()
+
+    fig.write_html("outputs/charts_and_data/fig4_8_pwr_capacity_bar_stacked/fig4_8_interactive.html")
+
 
     if dev_mode:
         print("👩‍💻 dev_mode ON — preview only (no files written)")
