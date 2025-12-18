@@ -34,11 +34,14 @@ def generate_fig_emissions_by_scenario_growth(df: pd.DataFrame, output_dir: str)
     Emissions by scenario, 3 growth rates (unconstrained only):
       - No facets
       - ScenarioKey on x-axis
-      - 3 points per scenario (EconomicGrowth) with deterministic offsets
+      - Exactly one dot per scenario per growth rate (LG/RG/HG) via aggregation
+      - Deterministic x offsets for LG/RG/HG (no overlap)
       - Collapse CPPS Variant -> CPPS
       - Remove 'Additional mitigation' by filtering CarbonBudget == Unconstrained
+      - Print scenarios + dot counts + missing/duplicate combos for verification
+      - (Optional visual improvement) faint connector line per scenario between LG→RG→HG
     """
-    print("▶ Generating: emissions by scenario (3 growth rates, unconstrained only)")
+    print("▶ Generating: emissions by scenario (LG/RG/HG, unconstrained only)")
     print(f"dev_mode={DEV_MODE}  out={output_dir}")
 
     dfx = df.copy()
@@ -65,43 +68,109 @@ def generate_fig_emissions_by_scenario_growth(df: pd.DataFrame, output_dir: str)
     dfx = dfx[dfx["CarbonBudget"] == "Unconstrained"].copy()
     dfx = dfx.dropna(subset=["ScenarioKey", "EconomicGrowth", "CO2eq"])
 
+    # Ensure single dot per (ScenarioKey, EconomicGrowth) by aggregating
+    dfx = (
+        dfx.groupby(["ScenarioKey", "EconomicGrowth"], as_index=False)
+           .agg(CO2eq=("CO2eq", "sum"))
+    )
+
     # Scenario order
     scenario_order = ["WEM", "CPP-IRP", "CPP-IRPLight", "CPP-SAREM", "CPPS", "High Carbon", "Low Carbon"]
     present_scen = [s for s in scenario_order if s in set(dfx["ScenarioKey"].astype(str))]
     if not present_scen:
         present_scen = sorted(dfx["ScenarioKey"].astype(str).unique().tolist())
 
-    # Growth order (best effort)
-    growth_order_pref = ["Low", "Medium", "High"]
-    present_growth = [g for g in growth_order_pref if g in set(dfx["EconomicGrowth"].astype(str))]
-    if not present_growth:
-        # fallback to alphabetical but stable
-        present_growth = sorted(dfx["EconomicGrowth"].astype(str).unique().tolist())
+    # Growth order (your real labels)
+    growth_order = ["LG", "RG", "HG"]
+    present_growth = [g for g in growth_order if g in set(dfx["EconomicGrowth"].astype(str))]
+    if len(present_growth) != 3:
+        print("\n⚠️ Expected LG/RG/HG but found:", sorted(set(dfx["EconomicGrowth"].astype(str))))
+        present_growth = sorted(set(dfx["EconomicGrowth"].astype(str)))
 
-    # Deterministic offsets (so points don't overlap)
-    # Example offsets: [-0.22, 0, 0.22] for three growth rates
-    if len(present_growth) == 1:
-        offsets = {present_growth[0]: 0.0}
-    else:
+    # Deterministic offsets (no overlap)
+    offsets = {"LG": -0.25, "RG": 0.0, "HG": 0.25}
+    # fallback offsets if weird labels appear
+    if any(g not in offsets for g in present_growth):
         step = 0.22
         center = (len(present_growth) - 1) / 2.0
         offsets = {g: (i - center) * step for i, g in enumerate(present_growth)}
 
     # Base x positions for scenarios
     scen_to_x = {s: i for i, s in enumerate(present_scen)}
-    dfx["x"] = dfx["ScenarioKey"].astype(str).map(scen_to_x)
-    dfx["x_off"] = dfx["EconomicGrowth"].astype(str).map(offsets)
+    dfx["ScenarioKey"] = dfx["ScenarioKey"].astype(str)
+    dfx["EconomicGrowth"] = dfx["EconomicGrowth"].astype(str)
+
+    dfx["x"] = dfx["ScenarioKey"].map(scen_to_x)
+    dfx["x_off"] = dfx["EconomicGrowth"].map(offsets)
     dfx["x_plot"] = dfx["x"] + dfx["x_off"]
 
-    # Colors for growth rates (Plotly default qualitative palette)
+    # --- Debug: what are we plotting? ---
+    print("\n📌 Scenarios being plotted (x-axis order):")
+    for s in present_scen:
+        print("  -", s)
+
+    print("\n📌 EconomicGrowth levels being plotted (legend order):")
+    for g in present_growth:
+        print("  -", g)
+
+    counts = (
+        dfx.groupby(["ScenarioKey", "EconomicGrowth"])
+           .size()
+           .reset_index(name="n")
+    )
+    print("\n📌 Dot counts per ScenarioKey × EconomicGrowth:")
+    print(counts.to_string(index=False))
+
+    expected = pd.MultiIndex.from_product(
+        [present_scen, ["LG", "RG", "HG"]],
+        names=["ScenarioKey", "EconomicGrowth"]
+    ).to_frame(index=False)
+
+    merged = expected.merge(counts, on=["ScenarioKey", "EconomicGrowth"], how="left")
+    merged["n"] = merged["n"].fillna(0).astype(int)
+
+    missing = merged[merged["n"] == 0]
+    dupes = merged[merged["n"] > 1]
+
+    if not missing.empty:
+        print("\n⚠️ Missing combinations (expected 1 dot, got 0):")
+        print(missing.to_string(index=False))
+
+    if not dupes.empty:
+        print("\n⚠️ Duplicate combinations (expected 1 dot, got >1):")
+        print(dupes.to_string(index=False))
+    print()
+
+    # Colors for growth rates
     palette = px.colors.qualitative.Plotly
     growth_to_color = {g: palette[i % len(palette)] for i, g in enumerate(present_growth)}
 
     fig = go.Figure()
 
-    # One trace per growth rate (clean legend)
+    # Optional: faint connector lines per scenario (LG→RG→HG)
+    # This makes the growth spread per scenario instantly readable.
+    if set(["LG", "RG", "HG"]).issubset(set(present_growth)):
+        growth_rank = {"LG": 0, "RG": 1, "HG": 2}
+        for s in present_scen:
+            sub = dfx[dfx["ScenarioKey"] == s].copy()
+            if sub.empty:
+                continue
+            sub = sub.sort_values(by="EconomicGrowth", key=lambda col: col.map(growth_rank))
+            if len(sub) >= 2:
+                fig.add_trace(
+                    go.Scatter(
+                        x=sub["x_plot"],
+                        y=sub["CO2eq"],
+                        mode="lines",
+                        line=dict(width=1, color="rgba(120,120,120,0.35)"),
+                        showlegend=False,
+                        hoverinfo="skip",
+                    )
+                )
+
+    # One marker trace per growth rate (clean legend)
     for g in present_growth:
-        sub = dfx[dfx["EconomicGrowth"].astype(str) == g].copy()
+        sub = dfx[dfx["EconomicGrowth"] == g].copy()
         fig.add_trace(
             go.Scatter(
                 x=sub["x_plot"],
@@ -117,7 +186,7 @@ def generate_fig_emissions_by_scenario_growth(df: pd.DataFrame, output_dir: str)
     # Common layout styling
     apply_common_layout(fig, image_type="report")
 
-    # X axis as categorical labels at integer positions
+    # X axis categorical labels at integer positions
     fig.update_xaxes(
         title_text="",
         tickmode="array",

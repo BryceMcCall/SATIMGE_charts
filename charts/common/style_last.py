@@ -64,7 +64,7 @@ def apply_final_export_style(
     # (These are "final truth" sizes; your earlier layout helper can still do general styling.)
     base_font = 32
     title_font = 32
-    tick_font = 22
+    tick_font = 16
     legend_font = 32
 
     if title is not None:
