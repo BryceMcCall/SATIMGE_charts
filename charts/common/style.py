@@ -305,7 +305,7 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         template="simple_white",
         #height=int(600 * scale),
         font=dict(family=FONT_FAMILY, size=base_font, color="black"),
-        margin=dict(l=80, r=80, t=60, b=int(100 * scale)),
+        margin=dict(l=110, r=80, t=60, b=int(100 * scale)),
         title=dict(font=dict(family=FONT_FAMILY, size=title_font),
                    x=0.5, xanchor="center", pad=dict(b=80)),
         legend=dict(orientation="h",
@@ -320,18 +320,19 @@ def apply_common_layout(fig: go.Figure, image_type: str = "report") -> go.Figure
         tickfont=dict(size=tick_font, family=FONT_FAMILY),
         title_font=dict(size=axis_title_font, family=FONT_FAMILY),
         tickmode="auto", dtick=None,
-        showline=True, mirror=True, linecolor="lightgrey", linewidth=1.2,
+        showline=True, mirror=False, linecolor="lightgrey", linewidth=1.2,
         minor=dict(ticks="outside", showgrid=True, gridcolor="whitesmoke",
                    ticklen=3, tick0=0, dtick=1)
     )
 
     fig.update_yaxes(
         showgrid=True, gridwidth=0.6, gridcolor="lightgrey",
+        title_standoff=28,   # try 28–40
         ticks="outside", ticklen=5,
         tickfont=dict(size=tick_font, family=FONT_FAMILY),
         title_font=dict(size=axis_title_font, family=FONT_FAMILY),
         rangemode="tozero",
-        showline=True, mirror=True, linecolor="lightgrey", linewidth=1.2,
+        showline=True, mirror=False, linecolor="lightgrey", linewidth=1.2,
         minor=dict(ticks="outside", showgrid=True, gridcolor="whitesmoke",
                    ticklen=3, tick0=0, dtick=25000)
     )
