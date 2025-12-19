@@ -9,7 +9,7 @@ if __name__ == "__main__" and __package__ is None:
 
 import pandas as pd
 import plotly.graph_objects as go
-from charts.common.style import apply_common_layout, color_for, color_sequence
+from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
 
 import yaml
@@ -117,21 +117,17 @@ def generate_fig4_2035_stacked_bar_by_scenarios(df: pd.DataFrame, output_dir: st
 
     fig4 = apply_common_layout(fig4)
     fig4.update_layout(
-        title="",
+        title="Fig 4: Energy Emissions by Scenario & Sector (2035)",
         xaxis_title="",
-        yaxis_title="CO₂e emissions in 2035 (MtCO₂e)",
-        xaxis=dict(
-            tickangle=90,
-            title=dict(text="Scenario", standoff=10),
-        ),
         barmode="stack",
         legend=dict(
-            orientation="h",
-            yanchor="top", y=-0.20,
-            xanchor="center", x=0.5
+            orientation="v",
+            yanchor="top",
+            y=1,
+            xanchor="left",
+            x=1.02
         )
-)
-
+    )
 
     print("saving figure 4")
     save_figures(fig4, output_dir, name="fig4_2035_stacked_bar_by_scenarios")

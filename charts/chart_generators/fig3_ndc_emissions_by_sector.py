@@ -1,18 +1,25 @@
 # charts/chart_generators/fig3_ndc_emissions_by_sector.py
+
 import sys
 from pathlib import Path
+
+# ────────────────────────────────────────────────────────
+if __name__ == "__main__" and __package__ is None:
+    project_root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(project_root))
+# ────────────────────────────────────────────────────────
+
 import pandas as pd
 import plotly.graph_objects as go
 from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
+
 import yaml
-
 project_root = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(project_root))
+config_path = project_root / "config.yaml"
 
-cfg_path = project_root / "config.yaml"
-if cfg_path.exists():
-    with open(cfg_path) as f:
+if config_path.exists():
+    with open(config_path) as f:
         _CFG = yaml.safe_load(f)
     dev_mode = _CFG.get("dev_mode", False)
 else:
@@ -20,20 +27,10 @@ else:
     dev_mode = False
 
 
-def _map_sector_group(sector: str) -> str:
-    if sector in ["Industry", "Process emissions"]:
-        return "Industry"
-    if sector == "Power":
-        return "Power"
-    if sector == "Transport":
-        return "Transport"
-    if sector == "Refineries":
-        return "Refineries"
-    return "All others"
-
-
 def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> None:
-    print("generating figure 3 — Mt units, minor horiz grid, smaller markers, labels visible")
+    print("generating figure 3")
+    print(f"🛠️  dev_mode = {dev_mode}")
+    print(f"📂 Output directory: {output_dir}")
 
     subset = df[
         (df["CO2eq"] != 0.0) &
@@ -41,84 +38,106 @@ def generate_fig3_ndc_emissions_by_sector(df: pd.DataFrame, output_dir: str) -> 
         (df["Year"].isin([2024, 2035]))
     ].copy()
 
-    subset["SectorGroup"] = subset["Sector"].apply(_map_sector_group)
+    def map_sector_group(sector):
+        if sector in ["Industry", "Process emissions"]:
+            return "Industry"
+        elif sector == "Power":
+            return "Power"
+        elif sector == "Transport":
+            return "Transport"
+        elif sector == "Refineries":
+            return "Refineries"
+        else:
+            return "All others"
+
+    subset["SectorGroup"] = subset["Sector"].apply(map_sector_group)
     data = subset.groupby(["Year", "SectorGroup"])["CO2eq"].sum().reset_index()
 
-    # kt → Mt for plotting
-    data["CO2eq_plot"] = data["CO2eq"] / 1000.0
-
-    pivot = data.pivot(index="SectorGroup", columns="Year", values="CO2eq_plot").fillna(0)
-    pivot["diff"] = pivot.get(2035, 0) - pivot.get(2024, 0)
-    pivot["label"] = pivot.index + " (" + pivot["diff"].round(1).astype(str) + ")"
+    pivot = data.pivot(index="SectorGroup", columns="Year", values="CO2eq").fillna(0)
+    pivot["diff"] = pivot[2035] - pivot[2024]
+    pivot["label"] = (
+        pivot.index + " (" + pivot["diff"].round(0).astype(int).astype(str) + ")"
+    )
     label_map = pivot["label"].to_dict()
     data["SectorLabel"] = data["SectorGroup"].map(label_map)
 
-    # Order categories by absolute change (smallest → largest)
     order_df = data[data["Year"] == 2035][["SectorGroup", "SectorLabel"]].drop_duplicates()
-    order_df["diff"] = order_df["SectorLabel"].map(pivot["diff"].to_dict())
-    ordered_labels = order_df.sort_values("diff")["SectorLabel"].tolist()
-    
-    print(ordered_labels)
-    
-    # Build figure
+    order_df["abs_diff"] = order_df["SectorLabel"].map(pivot["diff"].abs().to_dict())
+    ordered_label_list = order_df.sort_values("abs_diff")["SectorLabel"].tolist()
+    y_pos = {label: i for i, label in enumerate(ordered_label_list)}
+
     fig = go.Figure()
-    p24 = data[data["Year"] == 2024]
-    p35 = data[data["Year"] == 2035]
-
-    # 2024 (red circles) — slightly smaller markers
+    part_2024 = data[data["Year"] == 2024]
     fig.add_trace(go.Scatter(
-        x=p24["SectorLabel"], y=p24["CO2eq_plot"],
-        mode="markers", name="2024",
-        marker=dict(size=12, color="red", symbol="circle"),
-        hovertemplate="%{x}<br>2024: %{y:.2f} Mt<extra></extra>"
+        x=part_2024["CO2eq"],
+        y=part_2024["SectorLabel"],
+        mode="markers",
+        name="2024",
+        marker=dict(size=10, color="red", symbol="circle")
     ))
 
-    # 2035 (blue crosses)
+    part_2035 = data[data["Year"] == 2035]
     fig.add_trace(go.Scatter(
-        x=p35["SectorLabel"], y=p35["CO2eq_plot"],
-        mode="markers", name="2035",
-        marker=dict(size=13, color="blue", symbol="x"),
-        hovertemplate="%{x}<br>2035: %{y:.2f} Mt<extra></extra>"
+        x=part_2035["CO2eq"],
+        y=part_2035["SectorLabel"],
+        mode="markers",
+        name="2035",
+        marker=dict(size=10, color="blue", symbol="x")
     ))
 
-    # Layout/styling
+    other_scenarios = df[
+        (df["CO2eq"] != 0.0) &
+        (df["Scenario"] != "NDC_BASE-RG") &
+        (df["Year"].isin([2024, 2035]))
+    ].copy()
+    other_scenarios["SectorGroup"] = other_scenarios["Sector"].apply(map_sector_group)
+    other_scenarios["SectorLabel"] = other_scenarios["SectorGroup"].map(label_map)
+
+    for yr, symbol in zip([2024, 2035], ["circle", "x"]):
+        part = other_scenarios[other_scenarios["Year"] == yr]
+        fig.add_trace(go.Scatter(
+            x=part["CO2eq"],
+            y=part["SectorLabel"],
+            mode="markers",
+            name=f"{yr} (others)",
+            marker=dict(size=6, color="lightgrey", symbol=symbol),
+            showlegend=False,
+            opacity=0.4
+        ))
+
+    for _, row in part_2024.iterrows():
+        label = row["SectorLabel"]
+        x0 = row["CO2eq"]
+        match = part_2035[part_2035["SectorLabel"] == label]
+        if not match.empty:
+            x1 = match["CO2eq"].values[0]
+            y_index = y_pos[label]
+            fig.add_shape(
+                type="line",
+                x0=x0, y0=y_index,
+                x1=x1, y1=y_index,
+                line=dict(color="gray", width=1.5, dash="dot"),
+                xref="x", yref="y"
+            )
+
     fig = apply_common_layout(fig)
+    fig.update_xaxes(showgrid=True, automargin=True, nticks=6)
+    fig.update_yaxes(showgrid=True)
     fig.update_layout(
-        title_text="",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom", y=1.02,
-            xanchor="center", x=0.5
-        ),
-        margin=dict(b=90)  # room for x labels
-    )
-
-    # X axis: horizontal labels, fixed category order
-    fig.update_xaxes(
-        title=dict(text="", font=dict(size=16)),  
-        type="category",
-        categoryorder="array",
-        categoryarray=ordered_labels,
-        tickangle=0,             # horizontal
-        showticklabels=True,
-        ticklabelposition="outside bottom",
-        automargin=True
-    )
-
-    # Y axis: main + minor horizontal gridlines
-    fig.update_yaxes(
-        title=dict(text="CO₂eq (Mt)", font=dict(size=16)),                 
-        rangemode="tozero",
-        showgrid=True,
-        gridcolor="lightgrey",
-        zeroline=True,
-        zerolinecolor="black",
-        minor=dict(showgrid=True, gridcolor="lightgrey")
+        title="Fig 3: NDC_BASE-RG Emissions by Aggregate Sector Group (Δ 2035–2024)",
+        xaxis=dict(title="CO₂eq (kt)", rangemode="tozero"),
+        yaxis=dict(
+            title="Sector Group (Δ 2035–2024)",
+            type="category",
+            categoryorder="array",
+            categoryarray=ordered_label_list
+        )
     )
 
     if dev_mode:
-        print("👩‍💻 dev_mode ON — preview only")
-        # fig.show()
+        print("👩‍💻 dev_mode ON — showing chart only (no export)")
+        #fig.show() this crashes the script.
+
     else:
         print("💾 saving figure and data")
         save_figures(fig, output_dir, name="fig3_ndc_emissions_by_sector")

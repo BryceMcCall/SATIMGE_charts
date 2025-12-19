@@ -7,52 +7,23 @@ project:
 dev_mode: false
 
 charts:
-  include:
-    
-
-    #- fig_shadedfamilies #STATUS: 95% DONE. Colours could use a tweak for readability
-    #- fig_line_emissions_WEM #STATUS: this is working but legend title needs to be made smaller and better positioned
-    - fig_line_emissions_all # STATUS: 
-
-
-    #- fig_ElecSentOutDemand
-    #- fig3_ndc_emissions_by_sector
-    # - fig3
-    # - fig_newPWR
-    # - fig_shadedfamilies
-    # - fig_newPWR_colour2
-    # - fig_elecsentoutdemand_colour2
-    # - fig1
-    # - fig2
-    # - fig3
-    # - fig3b_ndc_emissions_by_sector
-    # - fig4_2035_stacked_bar_by_scenarios
-    # - fig4_coal_capacity_line
-    # - fig5_base_reference_emissions
-       # if you leave this out or set to [], we auto-run all
-    
+  include:       # if you leave this out or set to [], we auto-run all
+    - fig1
+    - fig2
+    - fig3
+    - fig4_coal_capacity_line
+    - fig3b_ndc_emissions_by_sector
+    - fig4_2035_stacked_bar_by_scenarios
+    - fig5_base_reference_emissions
+    - fig_shadedfamilies
 
   exclude:
   - Secunda-Scop1-CO2 emission-All scenarios
   - Secunda-Scop1-CO2 emission-Scenario family
   - CO2 based on national inventory
   - Scunda FT's products
-    - fig_newPWR
-    - fig_shadedfamilies
-    - fig_newPWR_colour2
-    - fig_elecsentoutdemand_colour2
-    - fig1
-    - fig2
-    - fig3
-    - fig3b_ndc_emissions_by_sector
-    - fig4_2035_stacked_bar_by_scenarios
-    - fig4_coal_capacity_line
-    - fig5_base_reference_emissions
-    - fig_ElecSentOutDemand
-    #- fig3_ndc_emissions_by_sector
-  
-     
-    
+  - fig3_ndc_emissions_by_sector
+  - fig07_electricity_ghgs
 
 output:
   formats:    # file formats to write

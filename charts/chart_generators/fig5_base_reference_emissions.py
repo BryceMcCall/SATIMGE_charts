@@ -9,7 +9,7 @@ if __name__ == "__main__" and __package__ is None:
 
 import pandas as pd
 import plotly.graph_objects as go
-from charts.common.style import apply_common_layout, color_for, color_sequence
+from charts.common.style import apply_common_layout
 from charts.common.save import save_figures
 
 import yaml
@@ -51,9 +51,9 @@ def generate_fig5_base_reference_emissions(df: pd.DataFrame, output_dir: str) ->
 
     fig = apply_common_layout(fig)
     fig.update_layout(
-        title="",
+        title="Fig 5: Total Emissions for BASE Scenarios (Reference Economic Growth)",
         xaxis_title="Year",
-        yaxis_title="CO₂eq (Mt)"
+        yaxis_title="CO₂eq (kt)"
     )
 
     print("saving figure 5")
