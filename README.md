@@ -19,20 +19,24 @@ project\_root/
 │   └── processed/
 │       ├── processed\_dataset.csv
 │       └── processed\_dataset.parquet
+│       └── processed\_(assorted mini datasets)
 ├── utils/
 │   └── mappings.py            # Sets & Maps Excel → mappings functions
 ├── charts/
 │   ├── common/
 │   │   ├── **init**.py
 │   │   ├── style.py           # shared Plotly styling
-│   │   └── save.py            # image‐saving helper reading config.yaml
+│   │   ├── save.py            # image‐saving helper reading config.yaml
+│   │   ├── style_last.py      # final aspect ratio & font overlay (WIP/buggy on most charts)
+│   │   └── outputs\gallery            # sometimes resulting charts are saved here 
 │   └── chart\_generators/      # one module per figure
 │       ├── **init**.py
 │       ├── fig1\_total\_emissions.py
 │       └── fig2\_shaded.py
+│       └── etc.
 ├── outputs/
-│   ├── charts_and_data/    # per-figure folders containing images & optional data.csv
-│   └── gallery/            # only report-quality images (no low_res/)
+│   ├── charts_and_data/    # per-figure folders containing images & optional data.csv (check charts/common/outputs if chart cannot be found here)
+│   └── gallery/            # copy of report-quality images (for easy browsing)
 
 
 ```
