@@ -29,8 +29,7 @@ COLOR_MAP = {
     "CPP-IRPLight": "#F8961E", # amber
     "CPP-SAREM": "#25A18E",    # blue-green
     "CPPS": "#004E64",         # deep blue
-    "CPPS Variant": "#7AE582", # soft green
-    "Low Carbon": "#43AA8B",   # teal green
+    "Low Carbon": "#7AE582", # soft green
     "High Carbon": "#5fa8d3",  # slate blue
 }
 
@@ -42,7 +41,6 @@ RENAME_MAP = {
     "CPP2": "CPP-IRPLight",
     "CPP3": "CPP-SAREM",
     "CPP4": "CPPS",
-    "CPP4 variant": "CPPS Variant",
     "Low carbon": "Low Carbon",
     "High carbon": "High Carbon",
     "Low Carbon": "Low Carbon",
@@ -85,7 +83,6 @@ def generate_fig4_42_emissions_scenario_families_box(df: pd.DataFrame, output_di
         "CPP-IRPLight",
         "CPP-SAREM",
         "CPPS",
-        "CPPS Variant",
         "Low Carbon",
         "High Carbon",
     ]

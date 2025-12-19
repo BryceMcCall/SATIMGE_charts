@@ -59,7 +59,7 @@ def generate_fig4_2_pane_emissions_by_scenario(df: pd.DataFrame, output_dir: str
     # Facet order
     scenario_order = [
         "WEM", "CPP-IRP", "CPP-IRPLight", "CPP-SAREM",
-        "CPPS", "CPPS Variant", "High Carbon", "Low Carbon"
+        "CPPS",  "High Carbon", "Low Carbon"
     ]
     present = [s for s in scenario_order if s in dfx["ScenarioKey"].unique()]
     dfx["ScenarioKey"] = pd.Categorical(dfx["ScenarioKey"], categories=present, ordered=True)
@@ -135,7 +135,7 @@ def generate_fig4_2_pane_emissions_by_scenario(df: pd.DataFrame, output_dir: str
 
 if __name__ == "__main__":
     # Use the usual dataset location you attached
-    data_path = project_root / "data" / "processed" / "data_Scenario_Pane_2035.csv"
+    data_path = project_root / "data" / "processed" / "data_Scenario_Pane_2035_no_cpps_variant.csv"
     df = pd.read_csv(data_path)
 
     out = project_root / "outputs" / "charts_and_data" / "fig4_2_pane_emissions_by_scenario"
