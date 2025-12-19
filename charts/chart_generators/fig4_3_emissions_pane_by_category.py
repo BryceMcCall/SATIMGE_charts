@@ -34,7 +34,7 @@ YTITLE_FONT = 16
 Y_TICK_FONT = 11
 
 FACET_TITLE_FONT = 16
-X_TICK_FONT = 6
+X_TICK_FONT = 4
 MARKER_SIZE = 10
 
 # Facet hygiene knobs (the important bit)
